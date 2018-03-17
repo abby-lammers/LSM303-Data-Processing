@@ -12,7 +12,7 @@
 }
 
 /* change background of page to enable scrolling down */
-.well {
+.skin-blue .wrapper {
   background-color: #ECF0F3;
   border-color:#002C53;
   border-width:1px;

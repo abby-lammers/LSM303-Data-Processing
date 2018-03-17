@@ -11,7 +11,8 @@ source('plot-helpers.R')
 
 shinyServer(function(input, output, session) {
   
-  TSAccelMag_CSV <- reactive({
+  #### TSAccelMag_Cal ####
+  TSAccelMag_Cal <- reactive({
     
     # for reference, %>% is R's pipe operator
     # from the magrittr package (imported by dplyr)
@@ -26,11 +27,25 @@ shinyServer(function(input, output, session) {
     return(TSAccelMag)
   })
   
-  output$rawdata <- DT::renderDataTable(TSAccelMag_CSV(), 
+  #### > rawdata ####
+  output$rawdata <- DT::renderDataTable(TSAccelMag_Cal(), 
     options = list(
-      dom = 't',
-      pageLength = nrow(TSAccelMag_CSV()) # view all data on one page without having to click through
+      pageLength = 100
+      #pageLength = nrow(TSAccelMag_Cal()) # view all data on one page without having to click through
     )
   )
   
+  #### > polarWindrose_tilt ####
+  output$polarWindrose_tilt <- renderPlotly({
+    windrose_heading_tilt(TSAccelMag_Cal())
+  })
+  
+  #### > cartesianWindrose_tilt ####
+  output$cartesianWindrose_tilt <- renderPlotly({
+    cartesian_heading_tilt(TSAccelMag_Cal())
+  })
+  
+  output$headingHistogram <- renderPlotly({
+    histogram_heading_frequency(TSAccelMag_Cal())
+  })
 })

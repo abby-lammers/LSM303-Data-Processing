@@ -35,7 +35,7 @@ windrose_heading_frequency <- function(TSAccelMag, autoAxes = FALSE) {
     r = ~Frequency,
     opacity = 0.2
   ) %>% layout(
-    title = "Heading Angle (° from North) vs Frequency \n Polar Histogram",
+    title = "Heading Angle (&deg; from North) vs Frequency \n Polar Histogram",
     font = TITLEFONT, 
     margin = list(t = 40, r = 20, l = 20),
     radialaxis = list(
@@ -72,7 +72,7 @@ histogram_heading_frequency <- function(TSAccelMag) {
     type = 'bar',
     x = ~Angle,
     y = ~Frequency,
-    hovertext = ~paste0("Angle: ", Angle, "°", "<br>", "Freq:",Frequency),
+    hovertext = ~paste0("Angle: ", Angle, "&deg;", "<br>", "Freq:",Frequency),
     hoverinfo = 'text'
   ) %>% layout(
     showlegend = F,
@@ -80,10 +80,9 @@ histogram_heading_frequency <- function(TSAccelMag) {
     titlefont = TITLEFONT,
     font = MAINFONT,
     xaxis = list(title = "Angle (clockwise degrees from magnetic north)"),
-    yaxis = list(title = "Frequency")
-  ) %>% config(
-    displayModeBar = FALSE
-  )
+    yaxis = list(title = "Frequency"),
+    margin = list(t = 70, r = 60, l = 60, b = 60)
+  ) %>% config(displayModeBar = FALSE)
   
   return(p)
 }
@@ -144,7 +143,7 @@ cartesian_heading_tilt <- function(TSAccelMag) {
     data = CartesianAngles,
     x = ~x_coord,
     y = ~y_coord,
-    text = ~paste0('Heading Angle: ',round(headingDegrees,2), ' deg<br>Tilt: ', round(tiltAngle,2), ' deg'),
+    text = ~paste0('Heading Angle: ',round(headingDegrees,2), '&deg;<br>Tilt: ', round(tiltAngle,2), '&deg;'),
     hoverinfo = 'text',
     type = 'scattergl',
     mode = 'markers',
@@ -157,9 +156,10 @@ cartesian_heading_tilt <- function(TSAccelMag) {
     title = "Heading (angular axis) vs Tilt (radial axis), \n Cartesian Coords for zoomability",
     titlefont = TITLEFONT,
     font = MAINFONT,
-    xaxis = list(autorange = FALSE, range = c(-axisMax, axisMax)),
-    yaxis = list(autorange = FALSE, range = c(-axisMax, axisMax))
-  ) %>% config(displayModeBar = TRUE)
+    margin = list(t = 70, r = 60, l = 60, b = 60),
+    xaxis = list(autorange = FALSE, range = c(-axisMax, axisMax), title = ""),
+    yaxis = list(autorange = FALSE, range = c(-axisMax, axisMax), title = "")
+  ) %>% config(displayModeBar = FALSE)
   
   return(p)
 }
@@ -172,7 +172,7 @@ line_ts_tiltangle <- function(TSAccelMag) {
     y = ~tiltAngle,
     type = 'scattergl',
     mode = 'lines',
-    text = ~paste0(datetime, "<br>", "Tilt: ", tiltAngle, "°"),
+    text = ~paste0(datetime, "<br>", "Tilt: ", tiltAngle, "&deg;"),
     hoverinfo = 'text'
   ) %>% layout(
     title = 'Tilt Angle',
@@ -197,7 +197,7 @@ scatter_ts_heading <- function(TSAccelMag) {
     type = 'scattergl',
     mode = 'markers',
     marker = list(size = 4),
-    text = ~paste0(datetime, "<br>", "Heading: ", headingDegrees, "°", '<br>', "Tilt: ", tiltAngle, "°"),
+    text = ~paste0(datetime, "<br>", "Heading: ", headingDegrees, "&deg;", '<br>', "Tilt: ", tiltAngle, "&deg;"),
     hoverinfo = 'text'
   ) %>% layout(
     title = 'Heading Angle',

@@ -11,16 +11,13 @@ shinyUI(dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem(text = 'Data Import',tabName = 'import'),
-      menuItem(text = 'Windrose', tabname = 'windrose')
+      menuItem(text = 'Windrose', tabName = 'windrose')
     )
   ),
   
   dashboardBody(
     # include the CSS script for additional custom formatting
     tags$head(includeCSS('www/style.css')),
-    
-    # include bindings to use custom javascript
-    useShinyjs(),
     
     ### BEGIN REAL CONTENT ###
     tabItems(
@@ -33,10 +30,22 @@ shinyUI(dashboardPage(
         )
       ),
       
+      ## TODO: resize windrose 
       tabItem(tabName = 'windrose',
-        plotlyOutput('polarWindrose_tilt'),
-        plotlyOutput('cartesianWindrose_tilt'),
-        plotlyOutput('headingHistogram')
+        fluidRow(
+          box(width = 6,
+            plotlyOutput('polarWindrose_tilt', width = "25%")
+          ),
+          box(width = 6,
+            plotlyOutput('cartesianWindrose_tilt')
+          )
+        ),
+        
+        fluidRow(
+          box(width = 12,
+            plotlyOutput('headingHistogram')
+          )
+        )
       )
     )
     
