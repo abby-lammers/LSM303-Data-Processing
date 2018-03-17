@@ -59,6 +59,11 @@ shinyUI(dashboardPage(
           box(width = 12,
             plotlyOutput('heading_ts_plot')
           )
+        ),
+        fluidRow(
+          box(width = 12,
+            plotOutput('stickplot')
+          )
         )
       )
     )

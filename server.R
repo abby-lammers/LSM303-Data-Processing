@@ -17,12 +17,13 @@ shinyServer(function(input, output, session) {
     # for reference, %>% is R's pipe operator
     # from the magrittr package (imported by dplyr)
     # for more information: http://magrittr.tidyverse.org/
-    TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', sample = 300) %>% 
+    TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv') %>% 
       Normalize_Accel() %>% 
       Get_Accel_Angles() %>% 
       Normalize_Mag() %>% 
       Compensate_Mag_Field() %>% 
-      Get_Heading()
+      Get_Heading() %>% 
+      arrange(datetime)
     
     return(TSAccelMag)
   })
@@ -58,5 +59,12 @@ shinyServer(function(input, output, session) {
   #### > heading_ts_plot ####
   output$heading_ts_plot <- renderPlotly({
     scatter_ts_heading(TSAccelMag_Cal())
+  })
+  
+  output$stickplot <- renderPlot({
+    firstdate <- TSAccelMag_Cal() %>% select(datetime) %>% head(1)[1] %>% floor_date('day')
+    lastdate <- firstdate + weeks(1)
+    
+    heading_stickplot(TSAccelMag_Cal(), firstdate, lastdate)
   })
 })

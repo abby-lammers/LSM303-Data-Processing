@@ -213,5 +213,31 @@ scatter_ts_heading <- function(TSAccelMag) {
   return(p)
 }
 
-# 7.1 Angle vs Time (scattergl, color by tilt ~velocity)
+#### STEP 8: STICKPLOT ####
+heading_stickplot <- function(TSAccelMag, firstdate, lastdate) {
+  CartesianAngles <- dplyr::select(TSAccelMag, datetime, tiltAngle, headingDegrees) %>% 
+    filter(floor_date(datetime, 'day') >= ymd(firstdate) & floor_date(datetime,'day') <= ymd(lastdate))
+  
+  # have to rotate the heading degrees from bearing coordinates
+  CartesianAngles$rotatedHeadingDegrees <- 90 - CartesianAngles$headingDegrees
+  
+  # x = r cos(t)
+  # y = r sin(t)
+  # t = rotatedHeadingDegrees, r = tiltAngle
+  CartesianAngles$x_coord <- CartesianAngles$tiltAngle * cos(CartesianAngles$rotatedHeadingDegrees * pi / 180)
+  CartesianAngles$y_coord <- CartesianAngles$tiltAngle * sin(CartesianAngles$rotatedHeadingDegrees * pi / 180)
+  
+  middley <- (range(CartesianAngles$tiltAngle)[1] + range(CartesianAngles$tiltAngle)[2])/2
+  
+  par(col = 'grey')
+  oce.plot.ts(x = CartesianAngles$datetime, y = CartesianAngles$tiltAngle, type = 'l')
+  plotSticks(
+    x = CartesianAngles$datetime, 
+    u = CartesianAngles$x_coord, 
+    v = CartesianAngles$y_coord, 
+    y = middley, 
+    add = TRUE, 
+    yscale = 3, col = 'black'
+  )
+}
 
