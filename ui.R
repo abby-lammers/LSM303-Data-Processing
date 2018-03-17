@@ -17,7 +17,7 @@ shinyUI(dashboardPage(
     # include bindings to use custom javascript
     useShinyjs(),
     
-    box(width = 12,
+    box(width = 12, height = '300px',
       div(class = 'overflowXY',
         DT::dataTableOutput('rawdata')
       )    

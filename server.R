@@ -26,9 +26,11 @@ shinyServer(function(input, output, session) {
     return(TSAccelMag)
   })
   
-  output$rawdata <- DT::renderDataTable(TSAccelMag_CSV(), options = list(
-    pageLength = nrow(TSAccelMag_CSV),
-    initComplete = JS('function(setting, json) { alert("done"); }')
-  ))
+  output$rawdata <- DT::renderDataTable(TSAccelMag_CSV(), 
+    options = list(
+      dom = 't',
+      pageLength = nrow(TSAccelMag_CSV()) # view all data on one page without having to click through
+    )
+  )
   
 })
