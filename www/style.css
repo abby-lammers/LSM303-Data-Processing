@@ -1,0 +1,12 @@
+.overflowXY {
+  overflow-x: scroll;
+  overflow-y: scroll;
+}
+
+.overflowX {
+  overflow-x: scroll;
+}
+
+.overflowY {
+  overflow-y: scroll;
+}
