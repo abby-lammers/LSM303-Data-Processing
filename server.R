@@ -35,17 +35,28 @@ shinyServer(function(input, output, session) {
     )
   )
   
-  #### > polarWindrose_tilt ####
-  output$polarWindrose_tilt <- renderPlotly({
+  #### > polarWindrose_tilt_plot ####
+  output$polarWindrose_tilt_plot <- renderPlotly({
     windrose_heading_tilt(TSAccelMag_Cal())
   })
   
-  #### > cartesianWindrose_tilt ####
-  output$cartesianWindrose_tilt <- renderPlotly({
+  #### > cartesianWindrose_tilt_plot ####
+  output$cartesianWindrose_tilt_plot <- renderPlotly({
     cartesian_heading_tilt(TSAccelMag_Cal())
   })
   
-  output$headingHistogram <- renderPlotly({
+  #### > headingHistogram_plot ####
+  output$headingHistogram_plot <- renderPlotly({
     histogram_heading_frequency(TSAccelMag_Cal())
+  })
+  
+  #### > tilt_ts_plot ####
+  output$tilt_ts_plot <- renderPlotly({
+    line_ts_tiltangle(TSAccelMag_Cal())
+  })
+  
+  #### > heading_ts_plot ####
+  output$heading_ts_plot <- renderPlotly({
+    scatter_ts_heading(TSAccelMag_Cal())
   })
 })

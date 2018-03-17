@@ -167,7 +167,7 @@ cartesian_heading_tilt <- function(TSAccelMag) {
 #### STEP 7: TIME-SERIES VECTOR PLOTS ####
 line_ts_tiltangle <- function(TSAccelMag) {
   p <- plot_ly(
-    data = TSAccelMag,
+    data = arrange(TSAccelMag, datetime),
     x = ~datetime,
     y = ~tiltAngle,
     type = 'scattergl',

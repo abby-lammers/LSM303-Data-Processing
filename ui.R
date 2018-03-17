@@ -11,7 +11,8 @@ shinyUI(dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem(text = 'Data Import',tabName = 'import'),
-      menuItem(text = 'Windrose', tabName = 'windrose')
+      menuItem(text = 'Windrose', tabName = 'windrose'),
+      menuItem(text = 'Time-Series Plots', tabName = 'timeseries')
     )
   ),
   
@@ -34,16 +35,29 @@ shinyUI(dashboardPage(
       tabItem(tabName = 'windrose',
         fluidRow(
           box(width = 6,
-            plotlyOutput('polarWindrose_tilt', width = "25%")
+            plotlyOutput('polarWindrose_tilt_plot', width = "25%")
           ),
           box(width = 6,
-            plotlyOutput('cartesianWindrose_tilt')
+            plotlyOutput('cartesianWindrose_tilt_plot')
           )
         ),
         
         fluidRow(
           box(width = 12,
-            plotlyOutput('headingHistogram')
+            plotlyOutput('headingHistogram_plot')
+          )
+        )
+      ),
+      
+      tabItem(tabName = 'timeseries',
+        fluidRow(
+          box(width = 12,
+            plotlyOutput('tilt_ts_plot')
+          )
+        ),
+        fluidRow(
+          box(width = 12,
+            plotlyOutput('heading_ts_plot')
           )
         )
       )
