@@ -1,7 +1,6 @@
 .overflowXY {
   overflow-x: scroll;
   overflow-y: scroll;
-  height:300px;
 }
 
 .overflowX {
@@ -10,4 +9,12 @@
 
 .overflowY {
   overflow-y: scroll;
+}
+
+/* change background of page to enable scrolling down */
+.well {
+  background-color: #ECF0F3;
+  border-color:#002C53;
+  border-width:1px;
+  border-radius:0;
 }

@@ -8,7 +8,12 @@ shinyUI(dashboardPage(
   
   dashboardHeader(title = 'LSM303 Data Processing and Visualization'),
   
-  dashboardSidebar(),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem(text = 'Data Import',tabName = 'import'),
+      menuItem(text = 'Windrose', tabname = 'windrose')
+    )
+  ),
   
   dashboardBody(
     # include the CSS script for additional custom formatting
@@ -17,10 +22,24 @@ shinyUI(dashboardPage(
     # include bindings to use custom javascript
     useShinyjs(),
     
-    box(width = 12, height = '300px',
-      div(class = 'overflowXY',
-        DT::dataTableOutput('rawdata')
-      )    
+    ### BEGIN REAL CONTENT ###
+    tabItems(
+      tabItem(tabName = 'import',
+        
+        box(width = 12,
+          div(class = 'overflowXY',
+            DT::dataTableOutput('rawdata')
+          )    
+        )
+      ),
+      
+      tabItem(tabName = 'windrose',
+        plotlyOutput('polarWindrose_tilt'),
+        plotlyOutput('cartesianWindrose_tilt'),
+        plotlyOutput('headingHistogram')
+      )
     )
+    
+    
   )
 ))

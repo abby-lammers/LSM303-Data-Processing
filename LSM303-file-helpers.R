@@ -2,7 +2,7 @@ require(dplyr)
 require(plotly)
 require(lubridate)
 
-TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', sample = 300) %>% 
+TSAccelMag <- Read_LSM303_csv('B4_20141222-150317_AKnorth.csv', sample = 0) %>% 
   Normalize_Accel() %>% 
   Get_Accel_Angles() %>% 
   Normalize_Mag() %>% 
