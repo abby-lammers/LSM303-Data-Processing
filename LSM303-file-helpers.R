@@ -34,14 +34,15 @@ Read_LSM303_csv <- function(fileName, sample = 0, crop = 0) {
   
   # crop and sample methods for ease of *development*
   # work with fewer points to speed things up
-  if (sample > 0) {
-    # sample n random rows
-    TSAccelMag <- dplyr::sample_n(TSAccelMag, sample)
-  } 
   
   if (crop > 0) {
     # take first n rows of data
     TSAccelMag <- head(TSAccelMag, crop) 
+  }
+  
+  if (sample > 0) {
+    # sample n random rows
+    TSAccelMag <- dplyr::sample_n(TSAccelMag, sample)
   }
   
   return(TSAccelMag)

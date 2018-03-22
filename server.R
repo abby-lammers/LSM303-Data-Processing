@@ -5,20 +5,67 @@ require(dplyr) # imports magrittr (pipe operators "%>%")
 require(DT)
 require(shinyjs)
 require(oce)
+require(shinyWidgets)
 
 # include function files
 source('LSM303-file-helpers.R')
 source('plot-helpers.R')
 
-CSV_NAME <- 'casa_cenote_all_raw_accel_mag.csv'
+SiteFileList <- list(
+  'Akumal South' = 'AKsouth_012_20160403-0714.csv',
+  'Akumal North' = 'B4_20141222-150317_AKnorth.csv',
+  'Casa Cenote' = 'casa_cenote_all_raw_accel_mag.csv',
+  'Odyssey' = 'OddessyCalibratedWithDateTime.csv',
+  'Calibration 1 (XY circle)' = 'calibration 1 clockwise circle true N.csv',
+  'Calibration 2 (Rotation around Z axis)' = 'calibration 2 ccw mag rotation no tilt.csv',
+  'Calibration 3 (N/S/E/W Tilt)' = 'calibration 3 plus drill.csv'
+)
 
 shinyServer(function(input, output, session) {
   
+  #### > welcomePanel ####
   output$welcomePanel <- renderUI({
     if (length(paste(input$tabs)) == 0) {
       ui <- list(
         h1('Welcome', align= 'center'),
-        h4('Click a tab to the left to get started.', align = 'center')
+        h4('Select a site below and click "Open File" to get started.', align = 'center'),
+        p('Note: you may have to click twice before sidebar menu appears... it\'s a work in progress)'),
+        
+        fluidRow(
+          column(width = 4,
+            selectInput('datafile', label = 'Choose a site:', choices = SiteFileList, width = '100%')
+          ),
+          column(width = 8, style = "margin-top: 25px;",
+            actionButton('selectDatafileButton', label = 'Open File')
+          )
+        ),
+        
+        br(),
+        h4('Crop/Sample Data to reduce load time (optional)'),
+        p('Recommended to crop or sample to 2000 observations or less (until faster plotting algorithms implemented)'),
+        p('Note: if both "crop" and "sample" are selected, data will first be cropped, then sampled.'),
+        p('Date range selection coming soon.'),
+        
+        fluidRow(
+          column(width = 3,
+            numericInput('crop_num', label = 'Crop data to first n observations', value = 0, width = '100%')
+          ),
+          column(width = 2,
+            awesomeCheckbox('crop_num_bool', label = "", value = FALSE)
+          )
+        ),
+        
+        fluidRow(
+          column(width = 3,
+            numericInput('sample_num', label = 'Randomly sample n observations', value = 0, width = '100%')
+            
+          ),
+          column(width = 2,
+            awesomeCheckbox('sample_num_bool', label = "", value = FALSE)
+            
+          )
+        )
+        
       )
     } else {
       ui <- list()
@@ -27,37 +74,42 @@ shinyServer(function(input, output, session) {
     return(ui)
   })
   
-  #### TSAccelMag_Cal ####
-  TSAccelMag_Cal <- reactive({
+  #### sample_crop ####
+  sample_crop <-  eventReactive(input$selectDatafileButton, {
+    rownum <- nrow(read.csv(input$datafile))
     
-    # for reference, %>% is R's pipe operator
-    # from the magrittr package (imported by dplyr)
-    # for more information: http://magrittr.tidyverse.org/
-    TSAccelMag <- Read_LSM303_csv(CSV_NAME)
-    
-    # if calibrated columns are not present, return NULL
-    if (sum(colnames(TSAccelMag) == 'xa_cal') < 1) {
-      return(NULL)
+    # crop should be less than the number of rows of the data set,
+    # otherwise it should be 0
+    if(input$crop_num_bool && input$crop_num < rownum) {
+      crop <- input$crop_num
+    } else {
+      crop <- 0
     }
     
-    TSAccelMag <- TSAccelMag %>% 
-    # TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', crop = 3000) %>% 
-      Normalize_Accel(cal = TRUE) %>% 
-      Get_Accel_Angles() %>% 
-      Normalize_Mag(cal = TRUE) %>% 
-      Compensate_Mag_Field() %>% 
-      Get_Heading() %>% 
-      arrange(datetime) %>% 
-      Round_TSAccelMag()
+    # if sample exists at all:
+    # if crop doesn't exist:
+    # if sample is greater than zero and less than the number of rows, sample = input
+    #if crop exists:
+    # if sample is greater than zero, less than the number of rows, and less than crop, sample = input
     
-    return(TSAccelMag)
+    if (input$sample_num_bool && input$sample_num > 0 && input$sample_num < rownum && (crop == 0 || input$sample_num < crop)) {
+      sample <- input$sample_num
+    } else {
+      sample <- 0
+    }
+    
+    return(list('sample' = sample, 'crop' = crop))
   })
   
+  #### ____ TSACCELMAG ____ ####
   #### TSAccelMag_Raw ####
-  TSAccelMag_Raw <- reactive({
+  TSAccelMag_Raw <- eventReactive(input$selectDatafileButton, {
     # Parallel to computation for TSAccelMag_Cal but starting with uncalibrated data
-    TSAccelMag <- Read_LSM303_csv(CSV_NAME, crop = 2000) %>% 
-      # TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', crop = 3000) %>% 
+    TSAccelMag <- Read_LSM303_csv(
+      fileName = input$datafile, 
+      crop = sample_crop()[['crop']], 
+      sample = sample_crop()[['sample']]
+    ) %>% 
       Normalize_Accel(cal = FALSE) %>% 
       Get_Accel_Angles() %>% 
       Normalize_Mag(cal = FALSE) %>% 
@@ -69,6 +121,37 @@ shinyServer(function(input, output, session) {
     return(TSAccelMag)
   })
   
+  
+  #### TSAccelMag_Cal ####
+  TSAccelMag_Cal <- eventReactive(input$selectDatafileButton, {
+    
+    # for reference, %>% is R's pipe operator
+    # from the magrittr package (imported by dplyr)
+    # for more information: http://magrittr.tidyverse.org/
+    TSAccelMag <- Read_LSM303_csv(
+      fileName = input$datafile, 
+      crop = sample_crop()[['crop']], 
+      sample = sample_crop()[['sample']]
+    ) 
+    
+    # if calibrated columns are not present, return NULL
+    if (sum(colnames(TSAccelMag) == 'xa_cal') < 1) {
+      return(NULL)
+    }
+    
+    TSAccelMag <- TSAccelMag %>% 
+      Normalize_Accel(cal = TRUE) %>% 
+      Get_Accel_Angles() %>% 
+      Normalize_Mag(cal = TRUE) %>% 
+      Compensate_Mag_Field() %>% 
+      Get_Heading() %>% 
+      arrange(datetime) %>% 
+      Round_TSAccelMag()
+    
+    return(TSAccelMag)
+  })
+  
+  
   #### TSAccelMag_Main ####
   TSAccelMag_Main <- reactive({
     # if calibrated data exists, use that.
@@ -79,10 +162,12 @@ shinyServer(function(input, output, session) {
       return(TSAccelMag_Raw())
     }
   })
+ 
   
   #### > sidebarmenu ####
   output$sidebarmenu <- renderUI({
-    req(TSAccelMag_Main())
+    req(sample_crop())
+    
     if (!is.null(TSAccelMag_Cal())) {
       ui <- sidebarMenu(id = 'tabs',
         menuItem(text = 'Data Import',tabName = 'import'),
@@ -119,6 +204,8 @@ shinyServer(function(input, output, session) {
     )
   })
   
+  
+  #### ____ DOWNLOAD ____ ####
   #### > rawdata ####
   ToDisplay <- reactive({
     req(TSAccelMag_Main())
@@ -143,7 +230,7 @@ shinyServer(function(input, output, session) {
     updateTextInput(
       session = session,
       inputId = 'csvName',
-      value = paste0("Processed_",year(now()),"_", month(now()),"_",day(now()),"_", CSV_NAME)
+      value = paste0("Processed_",year(now()),"_", month(now()),"_",day(now()),"_", input$datafile)
     )
   )
   

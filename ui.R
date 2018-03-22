@@ -6,7 +6,7 @@ require(shinyjs)
 
 shinyUI(dashboardPage(
   
-  dashboardHeader(title = 'LSM303 Data Processing and Visualization'),
+  dashboardHeader(title = 'LSM303 Data Processing and Visualization', titleWidth = '100%'),
   
   dashboardSidebar(
     uiOutput('sidebarmenu')
