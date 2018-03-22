@@ -86,6 +86,25 @@ shinyServer(function(input, output, session) {
     )
   )
   
+  #### :: update csv name ####
+  observe(
+    updateTextInput(
+      session = session,
+      inputId = 'csvName',
+      value = paste0("Processed_",year(now()),"_", month(now()),"_",day(now()),"_", CSV_NAME)
+    )
+  )
+  
+  #### > writeCSV ####
+  output$writeCSV <- downloadHandler(
+    filename = function(){ paste(input$csvName) },
+    content = function(file) {
+      write.csv(TSAccelMag_Cal(), file)
+    },
+    contentType = "text/csv"
+  )
+  
+  
   #### ____ WINDROSE ____ ####
   
   #### > polarWindrose_tilt_plot ####

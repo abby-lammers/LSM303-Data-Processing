@@ -25,10 +25,26 @@ shinyUI(dashboardPage(
     tabItems(
       tabItem(tabName = 'import',
         
-        box(width = 12,
-          div(class = 'overflowXY',
-            DT::dataTableOutput('rawdata')
-          )    
+        # button align bottom from r4ndomw4lk https://stackoverflow.com/questions/28960189/bottom-align-a-button-in-r-shiny
+        fluidRow(
+          column(width = 6,
+            textInput("csvName", width = "100%",
+              label = "Enter CSV title (ending in .csv)"
+            )
+          ),
+          column(width = 3, style = "margin-top: 25px;",
+            downloadButton('writeCSV',label = 'Download CSV')
+          )
+        ),
+        
+        hr(),
+        
+        fluidRow(
+          box(width = 12,
+            div(class = 'overflowXY',
+              DT::dataTableOutput('rawdata')
+            )    
+          )
         )
       ),
       
