@@ -187,3 +187,17 @@ Get_Heading <- function(TSAccelMag) {
   
   return(TSAccelMag)
 }
+
+#### STEP 5: ROUNDING ####
+Round_TSAccelMag <- function(TSAccelMag) {
+
+  # round to 1 decimal
+  roundToOneDecimal <-  c('a_modulus', 'tiltAngle','azimuthDegrees','m_modulus','headingDegrees','azimuthDegrees_adjusted')
+  TSAccelMag[ , roundToOneDecimal] <- round(TSAccelMag[, roundToOneDecimal], 1)
+  
+  # round to 4 decimal places (normalized measurements and angles in radians)
+  roundToFourDecimals <- c('xa_norm','ya_norm','za_norm','Gproj_XY','pitchRadians','rollRadians','xm_norm','ym_norm','zm_norm','xm_comp','ym_comp','zm_comp')
+  TSAccelMag[ , roundToFourDecimals] <- round(TSAccelMag[, roundToFourDecimals], 4)
+  
+  return(TSAccelMag)
+}

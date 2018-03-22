@@ -27,7 +27,8 @@ shinyServer(function(input, output, session) {
       Normalize_Mag(cal = TRUE) %>% 
       Compensate_Mag_Field() %>% 
       Get_Heading() %>% 
-      arrange(datetime)
+      arrange(datetime) %>% 
+      Round_TSAccelMag()
     
     return(TSAccelMag)
   })
@@ -60,19 +61,32 @@ shinyServer(function(input, output, session) {
       Normalize_Mag(cal = FALSE) %>% 
       Compensate_Mag_Field() %>% 
       Get_Heading() %>% 
-      arrange(datetime)
+      arrange(datetime) %>% 
+      Round_TSAccelMag()
     
     return(TSAccelMag)
   })
   
-  #### ____ WINDROSE ____ ####
   #### > rawdata ####
-  output$rawdata <- DT::renderDataTable(TSAccelMag_Cal(), 
+  ToDisplay <- reactive({
+    req(TSAccelMag_Cal())
+    
+    # TODO: make date display on one line
+    Table <- TSAccelMag_Cal()
+    Table$datetime <- paste(Table$datetime)
+    
+    return(Table)
+    
+  })
+  
+  output$rawdata <- DT::renderDataTable(ToDisplay(), 
     options = list(
       pageLength = 100
       #pageLength = nrow(TSAccelMag_Cal()) # view all data on one page without having to click through
     )
   )
+  
+  #### ____ WINDROSE ____ ####
   
   #### > polarWindrose_tilt_plot ####
   output$polarWindrose_tilt_plot <- renderPlotly({
