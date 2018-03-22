@@ -9,17 +9,14 @@ shinyUI(dashboardPage(
   dashboardHeader(title = 'LSM303 Data Processing and Visualization'),
   
   dashboardSidebar(
-    sidebarMenu(
-      menuItem(text = 'Data Import',tabName = 'import'),
-      menuItem(text = 'Windrose', tabName = 'windrose'),
-      menuItem(text = 'Time-Series Plots', tabName = 'timeseries'),
-      menuItem(text = 'Compare to Uncalibrated Data', tabName = 'compareData')
-    )
+    uiOutput('sidebarmenu')
   ),
   
   dashboardBody(
     # include the CSS script for additional custom formatting
     tags$head(includeCSS('www/style.css')),
+    
+    uiOutput('welcomePanel'),
     
     ### BEGIN REAL CONTENT ###
     tabItems(
@@ -37,7 +34,7 @@ shinyUI(dashboardPage(
           )
         ),
         
-        hr(),
+        br(),
         
         fluidRow(
           box(width = 12,
@@ -92,9 +89,10 @@ shinyUI(dashboardPage(
         )
       ),
       
+      # will be hidden from menu if no calibrated data
       tabItem(tabName = 'compareData',
         fluidRow(
-          box(width = 12, height = 500, title = 'Compare Windrose',
+          box(width = 12, height = "500px", title = 'Compare Windrose',
             column(width = 6,
               h4('Calibrated'),
               plotlyOutput('calibrated_windrose')

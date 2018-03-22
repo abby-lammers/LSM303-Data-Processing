@@ -25,6 +25,7 @@ GetAzimuth <- function(Xvec, Yvec) {
 }
 
 
+#### STEP 0: READ CSV ####
 # read csv of data
 # COLUMN NAMES: c('datetime','xa','ya','za','xm','ym','zm')
 Read_LSM303_csv <- function(fileName, sample = 0, crop = 0) {
@@ -47,7 +48,7 @@ Read_LSM303_csv <- function(fileName, sample = 0, crop = 0) {
 }
 
 
-#### STEP 0: NORMALIZE ACCELEROMETER DATA ####
+#### STEP 1: NORMALIZE ACCELEROMETER DATA ####
 # Let Ax, Ay, Az be the calibrated accelerometer values
 # Ax1, Ay1, and Az1 are the "normalized" readings.
 # Goal: "the root sum of Ax1, Ay1, and Az1 should be equal to one when the accelerometer is still"
@@ -83,7 +84,7 @@ Normalize_Accel <- function(TSAccelMag, cal = TRUE) {
 
 # from LSM303 vignette Appendix A
 # https://www.sparkfun.com/datasheets/Sensors/Magneto/Tilt%20Compensated%20Compass.pdf
-#### STEP 1: TILT, ROLL, PITCH ####
+#### STEP 2: TILT, ROLL, PITCH ####
 
 # returns tilt (degrees), roll (radians), and pitch (radians) angles. 
 # tilt angle is proportional to the velocity of the water and is used as a velocity proxy
@@ -113,7 +114,7 @@ Get_Accel_Angles <- function(TSAccelMag) {
 }
 
 
-#### STEP 2: NORMALIZE MAGNETOMETER DATA ####
+#### STEP 3: NORMALIZE MAGNETOMETER DATA ####
 # note: magnetometer data was calibrated in Oddessy spreadsheet
 
 # data in nanoteslas
@@ -152,7 +153,7 @@ Normalize_Mag <- function(TSAccelMag, cal = TRUE) {
 }
 
 
-#### STEP 3: TILT-COMPENSATED MAG FIELD ####
+#### STEP 4: TILT-COMPENSATED MAG FIELD ####
 Compensate_Mag_Field <- function(TSAccelMag) {
   
   # calculations based on eqn 12 in the LSM303 Vignette
@@ -171,7 +172,7 @@ Compensate_Mag_Field <- function(TSAccelMag) {
 }
 
 
-#### STEP 4: HEADING CALCULATION ####
+#### STEP 5: HEADING CALCULATION ####
 # see equation 13 in LSM303 vignette
 
 Get_Heading <- function(TSAccelMag) {
@@ -188,7 +189,7 @@ Get_Heading <- function(TSAccelMag) {
   return(TSAccelMag)
 }
 
-#### STEP 5: ROUNDING ####
+#### STEP 6: ROUNDING ####
 Round_TSAccelMag <- function(TSAccelMag) {
 
   # round to 1 decimal
