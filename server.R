@@ -18,7 +18,7 @@ shinyServer(function(input, output, session) {
     # for reference, %>% is R's pipe operator
     # from the magrittr package (imported by dplyr)
     # for more information: http://magrittr.tidyverse.org/
-    TSAccelMag <- Read_LSM303_csv('calibration 3 plus drill.csv',crop = 3000) %>% 
+    TSAccelMag <- Read_LSM303_csv('B4_20141222-150317_AKnorth.csv') %>% 
     # TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', crop = 3000) %>% 
       Normalize_Accel() %>% 
       Get_Accel_Angles() %>% 

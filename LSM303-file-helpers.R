@@ -1,6 +1,29 @@
 require(dplyr)
 require(plotly)
 require(lubridate)
+
+# Helper to assign quadrant based on X and Y position
+AssignQuadrant <- function(Xvec, Yvec) {
+  ReturnVec <- rep(0, length(Xvec))
+  ReturnVec[Xvec >= 0 & Yvec >= 0] <- 1
+  ReturnVec[Xvec < 0 & Yvec >= 0] <- 2
+  ReturnVec[Xvec < 0 & Yvec < 0] <- 3
+  ReturnVec[Xvec >= 0 & Yvec < 0] <- 4
+  # if any of the observations are exactly equal to zero, a zero is returned
+  return(ReturnVec)
+}
+
+# returns azimuth/bearing based on X and Y vectors
+GetAzimuth <- function(Xvec, Yvec) {
+  Quadrant <- AssignQuadrant(Xvec, Yvec)
+  
+  ReturnVec <- atan(Yvec/Xvec) * 180 / pi
+  ReturnVec[Quadrant == 2 | Quadrant == 3] <- 180 + ReturnVec[Quadrant == 2 | Quadrant == 3]
+  ReturnVec[Quadrant == 4] <- 360 + ReturnVec[Quadrant == 4]
+  
+  return(ReturnVec)
+}
+
 # 
 # TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', sample = 0) %>% 
 # # TSAccelMag <- Read_LSM303_csv('B4_20141222-150317_AKnorth.csv', sample = 0) %>% 
@@ -71,7 +94,17 @@ Get_Accel_Angles <- function(TSAccelMag) {
   # pitch and tilt angles in radians
   # xa_norm must be less than 1 for this to work 
   TSAccelMag$pitchRadians <- asin(-1*TSAccelMag$xa_norm) # should stay bn +/- 45 degrees for linearity (see LSM303 vignette for details) 
-  TSAccelMag$rollRadians <- TSAccelMag$ya_norm / cos(TSAccelMag$pitchRadians)
+  
+  
+  # roll calculation modified slightly from LSM303 vignette
+  # cos(pitchRadians) reduces to 1
+  # old:
+  # TSAccelMag$rollRadians <- asin(TSAccelMag$ya_norm / cos(TSAccelMag$pitchRadians))
+  TSAccelMag$rollRadians <- asin(TSAccelMag$ya_norm)
+  
+  # Use GetAzimuth function to get Azimuth relative to body coordinates
+  # Not yet relative to true N (need magnetometer heading first)
+  TSAccelMag$azimuthDegrees <- GetAzimuth(TSAccelMag$xa_norm, TSAccelMag$ya_norm)
   
   return(TSAccelMag)
 }
@@ -124,33 +157,15 @@ Compensate_Mag_Field <- function(TSAccelMag) {
 # see equation 13 in LSM303 vignette
 
 Get_Heading <- function(TSAccelMag) {
+  # see equation 13 in LSM303 vignette
+  # use GetAzimuth function to get magnetometer heading
+  #   (The angle between the XY projection of the magnetometer vector
+  #     relative to the true magnetic north)
+  TSAccelMag$headingDegrees <- GetAzimuth(TSAccelMag$xm_comp, TSAccelMag$ym_comp)
   
-  # to be applied over rows
-  # VERY time-intensive (need to find faster method)
-  getDegreeHeading <- function(observationRow) {
-    mx <- observationRow[which(names(observationRow) == 'xm_comp')][[1]] %>% as.numeric
-    my <- observationRow[which(names(observationRow) == 'ym_comp')][[1]] %>% as.numeric
-    
-    if (mx > 0 && my >= 0) {
-      heading <- atan(my/mx) * 180 / pi
-    } else if (mx < 0) {
-      heading <- 180 + atan(my/mx) * 180 / pi
-    } else if (mx > 0 && my <= 0) {
-      heading <- 360 + atan(my/mx) * 180 / pi
-    } else if (mx == 0 && my < 0) {
-      heading <- 90
-    } else if (mx == 0 && my > 0) {
-      heading <- 270
-    } else {
-      heading <- NA
-    }
-    
-    return(heading)
-  }
-  
-  # apply getDegreeHeading function to each row (MARGIN = 1)
-  # similar to for loop but faster
-  TSAccelMag$headingDegrees <- apply(TSAccelMag, MARGIN = 1, getDegreeHeading)
+  # add azimuth and heading degrees
+  # then take remainder when divided by 360 to get angle between 0 and 360
+  TSAccelMag$azimuthDegrees_adjusted <- (TSAccelMag$headingDegrees + TSAccelMag$azimuthDegrees) %% 360
   
   return(TSAccelMag)
 }

@@ -16,7 +16,7 @@ MAINFONT <- list(
 
 #### STEP 5: WINDROSE (FREQUENCY) ####
 Get_Heading_Frequency_Table <- function(TSAccelMag) {
-  tempFreqTable <- table(round(TSAccelMag$headingDegrees,1))
+  tempFreqTable <- table(round(TSAccelMag$azimuthDegrees_adjusted,1))
   AngleFrequencyTable <- data.frame(
     Angle = as.numeric(names(tempFreqTable)),
     Frequency = as.vector(tempFreqTable)
@@ -93,7 +93,7 @@ windrose_heading_tilt <- function(TSAccelMag) {
   p <- plot_ly(
     data = TSAccelMag,
     type = 'area',
-    t = ~headingDegrees,
+    t = ~azimuthDegrees_adjusted,
     r = ~tiltAngle,
     opacity = 0.3,
     marker = list(size = 4)
@@ -125,16 +125,16 @@ windrose_heading_tilt <- function(TSAccelMag) {
 
 cartesian_heading_tilt <- function(TSAccelMag) {
   # new data.frame with fewer columns
-  CartesianAngles <- select(TSAccelMag, tiltAngle, headingDegrees)
+  CartesianAngles <- select(TSAccelMag, tiltAngle, azimuthDegrees_adjusted)
   
   # have to rotate the heading degrees from bearing coordinates
-  CartesianAngles$rotatedHeadingDegrees <- 90 - CartesianAngles$headingDegrees
+  CartesianAngles$rotatedazimuthDegrees_adjusted <- 90 - CartesianAngles$azimuthDegrees_adjusted
   
   # x = r cos(t)
   # y = r sin(t)
-  # t = rotatedHeadingDegrees, r = tiltAngle
-  CartesianAngles$x_coord <- CartesianAngles$tiltAngle * cos(CartesianAngles$rotatedHeadingDegrees * pi / 180)
-  CartesianAngles$y_coord <- CartesianAngles$tiltAngle * sin(CartesianAngles$rotatedHeadingDegrees * pi / 180)
+  # t = rotatedazimuthDegrees_adjusted, r = tiltAngle
+  CartesianAngles$x_coord <- CartesianAngles$tiltAngle * cos(CartesianAngles$rotatedazimuthDegrees_adjusted * pi / 180)
+  CartesianAngles$y_coord <- CartesianAngles$tiltAngle * sin(CartesianAngles$rotatedazimuthDegrees_adjusted * pi / 180)
   
   # make sure that axes are equal 
   axisMax = max(max(CartesianAngles$x_coord), max(CartesianAngles$y_coord))
@@ -143,7 +143,7 @@ cartesian_heading_tilt <- function(TSAccelMag) {
     data = CartesianAngles,
     x = ~x_coord,
     y = ~y_coord,
-    text = ~paste0('Heading Angle: ',round(headingDegrees,2), '&deg;<br>Tilt: ', round(tiltAngle,2), '&deg;'),
+    text = ~paste0('Heading Angle: ',round(azimuthDegrees_adjusted,2), '&deg;<br>Tilt: ', round(tiltAngle,2), '&deg;'),
     hoverinfo = 'text',
     type = 'scatter',
     mode = 'markers',
@@ -192,12 +192,12 @@ scatter_ts_heading <- function(TSAccelMag) {
   p <- plot_ly(
     data = TSAccelMag,
     x = ~datetime,
-    y = ~headingDegrees,
+    y = ~azimuthDegrees_adjusted,
     color = ~tiltAngle,
     type = 'scatter',
     mode = 'markers',
     marker = list(size = 4),
-    text = ~paste0(datetime, "<br>", "Heading: ", headingDegrees, "&deg;", '<br>', "Tilt: ", tiltAngle, "&deg;"),
+    text = ~paste0(datetime, "<br>", "Heading: ", azimuthDegrees_adjusted, "&deg;", '<br>', "Tilt: ", tiltAngle, "&deg;"),
     hoverinfo = 'text'
   ) %>% layout(
     title = 'Heading Angle',
@@ -215,17 +215,17 @@ scatter_ts_heading <- function(TSAccelMag) {
 
 #### STEP 8: STICKPLOT ####
 heading_stickplot <- function(TSAccelMag, firstdate, lastdate) {
-  CartesianAngles <- dplyr::select(TSAccelMag, datetime, tiltAngle, headingDegrees) %>% 
+  CartesianAngles <- dplyr::select(TSAccelMag, datetime, tiltAngle, azimuthDegrees_adjusted) %>% 
     filter(floor_date(datetime, 'day') >= ymd(firstdate) & floor_date(datetime,'day') <= ymd(lastdate))
   
   # have to rotate the heading degrees from bearing coordinates
-  CartesianAngles$rotatedHeadingDegrees <- 90 - CartesianAngles$headingDegrees
+  CartesianAngles$rotatedazimuthDegrees_adjusted <- 90 - CartesianAngles$azimuthDegrees_adjusted
   
   # x = r cos(t)
   # y = r sin(t)
-  # t = rotatedHeadingDegrees, r = tiltAngle
-  CartesianAngles$x_coord <- CartesianAngles$tiltAngle * cos(CartesianAngles$rotatedHeadingDegrees * pi / 180)
-  CartesianAngles$y_coord <- CartesianAngles$tiltAngle * sin(CartesianAngles$rotatedHeadingDegrees * pi / 180)
+  # t = rotatedazimuthDegrees_adjusted, r = tiltAngle
+  CartesianAngles$x_coord <- CartesianAngles$tiltAngle * cos(CartesianAngles$rotatedazimuthDegrees_adjusted * pi / 180)
+  CartesianAngles$y_coord <- CartesianAngles$tiltAngle * sin(CartesianAngles$rotatedazimuthDegrees_adjusted * pi / 180)
   
   middley <- (range(CartesianAngles$tiltAngle)[1] + range(CartesianAngles$tiltAngle)[2])/2
   
