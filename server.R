@@ -32,6 +32,24 @@ shinyServer(function(input, output, session) {
     return(TSAccelMag)
   })
   
+  #### :: stickplot dates ####
+  observe({
+    req(TSAccelMag_Cal())
+    
+    firstdate <- TSAccelMag_Cal()$datetime[1][1] %>% floor_date('day')
+    oneweek <- firstdate + weeks(1)
+    lastdate <- TSAccelMag_Cal()$datetime[nrow(TSAccelMag_Cal())][1] %>% floor_date('day')
+
+    updateDateRangeInput(
+      session = session,
+      inputId = 'stickplot_dates', 
+      start = firstdate,
+      end = oneweek,
+      min = firstdate,
+      max = lastdate
+    )
+  })
+  
   #### TSAccelMag_Raw ####
   TSAccelMag_Raw <- reactive({
     # Parallel to computation for TSAccelMag_Cal but starting with uncalibrated data
@@ -85,9 +103,12 @@ shinyServer(function(input, output, session) {
   
   #### > stickplot ####
   output$stickplot <- renderPlot({
-    firstdate <- TSAccelMag_Cal() %>% select(datetime) %>% head(1)[1] %>% floor_date('day')
-    lastdate <- firstdate + weeks(1)
+    # get dates from stickplot_dates selector on ui side
+    firstdate <- ymd(input$stickplot_dates[1])
+    lastdate <- ymd(input$stickplot_dates[2])
     
+    validate(need(firstdate + days(1) < lastdate, 'Please select a date range greater than one day.'))
+
     heading_stickplot(TSAccelMag_Cal(), firstdate, lastdate)
   })
   

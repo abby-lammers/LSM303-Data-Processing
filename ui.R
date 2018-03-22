@@ -63,6 +63,14 @@ shinyUI(dashboardPage(
         ),
         fluidRow(
           box(width = 12,
+            dateRangeInput('stickplot_dates', 
+              label = 'Select Dates for Vector Plot (Recommended time span: one week)', 
+              start = '2018-01-01', # will be overridden in server.R as soon as data is processed
+              end = '2018-01-07'
+            ),
+            hr(),
+            h4('Flow Velocity Vector over Time', align = 'center'),
+            p('Light grey line represents tilt angle. Magnitude of each vector is tilt angle (proportional to velocity) and direction is azimuth angle.', align = 'center'),
             plotOutput('stickplot')
           )
         )
