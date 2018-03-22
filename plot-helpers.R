@@ -1,5 +1,6 @@
 require(plotly)
 require(lubridate)
+require(dplyr)
 
 TITLEFONT <- list(
   family = c('Open Sans','Arial'),
@@ -283,43 +284,80 @@ compare_angle_histogram <- function(TSAccelMag_Cal, TSAccelMag_Raw) {
   return(p)
 }
 
+compare_angle_histogram_gg <- function(TSAccelMag_Cal, TSAccelMag_Raw) {
+  HeadingTable <- rbind(
+    data.frame(IsCal = rep('Calibrated', nrow(TSAccelMag_Cal)), Angle = round(TSAccelMag_Cal$azimuthDegrees_adjusted, 1)),
+    data.frame(IsCal = rep('Uncalibrated', nrow(TSAccelMag_Raw)), Angle = round(TSAccelMag_Raw$azimuthDegrees_adjusted, 1))
+  )
+  
+  gg <- ggplot(HeadingTable) + 
+    geom_bar(aes(Angle, fill = IsCal), alpha = 0.5, position = position_identity()) +
+    theme_bw() +
+    ggtitle('Heading Angle Histogram') +
+    xlab("Angle (clockwise degrees from magnetic north)") +
+    ylab("Frequency") +
+    theme(legend.title = element_blank())
+  
+  return(gg)
+}
+
 
 
 compare_tilt_line <- function(TSAccelMag_Cal, TSAccelMag_Raw) {
   
   ## ABSURDLY HARD TO LOAD
   # requires way too much computational power at this time
-  # p <- plot_ly(
-  #   data = arrange(TSAccelMag_Cal, datetime),
-  #   x = ~datetime,
-  #   y = ~tiltAngle,
-  #   type = 'scatter',
-  #   mode = 'lines',
-  #   line = list(color = 'blue'),
-  #   opacity = 0.5,
-  #   text = ~paste0(datetime, "<br>", "Tilt: ", tiltAngle, "&deg;"),
-  #   hoverinfo = 'text',
-  #   name = 'Calibrated'
-  # ) %>% add_lines(
-  #   data = arrange(TSAccelMag_Raw, datetime),
-  #   x = ~datetime,
-  #   y = ~tiltAngle,
-  #   type = 'scatter',
-  #   mode = 'lines',
-  #   line = list(color = 'red'),
-  #   opacity = 0.5,
-  #   text = ~paste0(datetime, "<br>", "Tilt: ", tiltAngle, "&deg;"),
-  #   hoverinfo = 'text',
-  #   name = 'Uncalibrated'
-  # ) %>% layout(
-  #   title = 'Tilt Angle',
-  #   titlefont = TITLEFONT,
-  #   font = MAINFONT,
-  #   xaxis = list(
-  #     range = as.numeric(range(TSAccelMag_Cal$datetime))*1000,
-  #     title = 'Date/time'
-  #   ),
-  #   yaxis = list(title = 'Tilt Angle (degrees from vertical)')
-  # ) %>% config(displayModeBar = 'hover')
+  p <- plot_ly(
+    data = arrange(TSAccelMag_Cal, datetime),
+    x = ~datetime,
+    y = ~tiltAngle,
+    type = 'scatter',
+    mode = 'lines',
+    line = list(color = 'blue'),
+    opacity = 0.5,
+    text = ~paste0(datetime, "<br>", "Tilt: ", tiltAngle, "&deg;"),
+    hoverinfo = 'text',
+    name = 'Calibrated'
+  ) %>% add_lines(
+    data = arrange(TSAccelMag_Raw, datetime),
+    x = ~datetime,
+    y = ~tiltAngle,
+    type = 'scatter',
+    mode = 'lines',
+    line = list(color = 'red'),
+    opacity = 0.5,
+    text = ~paste0(datetime, "<br>", "Tilt: ", tiltAngle, "&deg;"),
+    hoverinfo = 'text',
+    name = 'Uncalibrated'
+  ) %>% layout(
+    title = 'Tilt Angle',
+    titlefont = TITLEFONT,
+    font = MAINFONT,
+    xaxis = list(
+      range = as.numeric(range(TSAccelMag_Cal$datetime))*1000,
+      title = 'Date/time'
+    ),
+    yaxis = list(title = 'Tilt Angle (degrees from vertical)')
+  ) %>% config(displayModeBar = 'hover')
   
+  return(p)
+  
+}
+
+compare_tilt_line_gg <- function(TSAccelMag_Cal, TSAccelMag_Raw) {
+  
+  Tilts <- rbind(
+    data.frame(IsCal = rep('Calibrated', nrow(TSAccelMag_Cal)), Tilt = TSAccelMag_Cal$tiltAngle, Datetime = TSAccelMag_Cal$datetime),
+    data.frame(IsCal = rep('Uncalibrated', nrow(TSAccelMag_Raw)), Tilt = TSAccelMag_Raw$tiltAngle, Datetime = TSAccelMag_Raw$datetime)
+  )
+  
+  gg <- ggplot(Tilts, aes(Datetime, Tilt, color = IsCal)) + 
+    geom_point(alpha = 0.5, stroke = 0) +
+    theme_bw() +
+    ggtitle('Tilt Angle') +
+    xlab("Date/Time") +
+    ylab("Tilt Angle (degrees from vertical)") +
+    theme(legend.title = element_blank())
+  
+  return(gg)
 }

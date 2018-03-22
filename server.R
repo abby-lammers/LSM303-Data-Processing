@@ -20,7 +20,7 @@ shinyServer(function(input, output, session) {
     # for reference, %>% is R's pipe operator
     # from the magrittr package (imported by dplyr)
     # for more information: http://magrittr.tidyverse.org/
-    TSAccelMag <- Read_LSM303_csv(CSV_NAME) %>% 
+    TSAccelMag <- Read_LSM303_csv(CSV_NAME, sample = 2000) %>% 
     # TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', crop = 3000) %>% 
       Normalize_Accel(cal = TRUE) %>% 
       Get_Accel_Angles() %>% 
@@ -35,7 +35,7 @@ shinyServer(function(input, output, session) {
   #### TSAccelMag_Raw ####
   TSAccelMag_Raw <- reactive({
     # Parallel to computation for TSAccelMag_Cal but starting with uncalibrated data
-    TSAccelMag <- Read_LSM303_csv(CSV_NAME) %>% 
+    TSAccelMag <- Read_LSM303_csv(CSV_NAME, sample = 2000) %>% 
       # TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', crop = 3000) %>% 
       Normalize_Accel(cal = FALSE) %>% 
       Get_Accel_Angles() %>% 
@@ -102,7 +102,13 @@ shinyServer(function(input, output, session) {
     windrose_heading_tilt(TSAccelMag_Raw())
   })
   
-  output$compare_calibration_histogram <- renderPlotly({
-    compare_angle_histogram(TSAccelMag_Cal(), TSAccelMag_Raw())
+  #### > compare_calibration_histogram ####
+  output$compare_calibration_histogram <- renderPlot({
+    compare_angle_histogram_gg(TSAccelMag_Cal(), TSAccelMag_Raw())
+  })
+  
+  #### > compare_calibration_tilt ####
+  output$compare_calibration_tilt <- renderPlot({
+    compare_tilt_line_gg(TSAccelMag_Cal(), TSAccelMag_Raw())
   })
 })

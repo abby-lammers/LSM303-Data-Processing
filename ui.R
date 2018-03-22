@@ -70,13 +70,13 @@ shinyUI(dashboardPage(
       
       tabItem(tabName = 'compareData',
         fluidRow(
-          box(width = 12, title = 'Compare Windrose',
+          box(width = 12, height = 500, title = 'Compare Windrose',
             column(width = 6,
-              h3('Calibrated'),
+              h4('Calibrated'),
               plotlyOutput('calibrated_windrose')
             ),
             column(width = 6,
-              h3('Uncalibrated'),
+              h4('Uncalibrated'),
               plotlyOutput('uncalibrated_windrose')
             )
           )
@@ -84,14 +84,15 @@ shinyUI(dashboardPage(
         
         fluidRow(
           box(width = 12,
-            plotlyOutput('compare_calibration_histogram')
+            plotOutput('compare_calibration_histogram')
+          )
+        ),
+        
+        fluidRow(
+          box(width = 12,
+            plotOutput('compare_calibration_tilt')
           )
         )
-        # fluidRow(
-        #   box(width = 12,
-        #     plotlyOutput('compare_calibration_tilt')
-        #   )
-        # )
       )
     )
     
