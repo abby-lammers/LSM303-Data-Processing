@@ -241,3 +241,85 @@ heading_stickplot <- function(TSAccelMag, firstdate, lastdate) {
   )
 }
 
+
+#### COMPARE UNCALIBRATED ####
+compare_angle_histogram <- function(TSAccelMag_Cal, TSAccelMag_Raw) {
+  CalTable <- Get_Heading_Frequency_Table(TSAccelMag_Cal)
+  RawTable <- Get_Heading_Frequency_Table(TSAccelMag_Raw)
+  # TODO: relative frequencies
+  # TODO: adjust bin size
+  
+  HeadingTable <- full_join(CalTable, RawTable, by = 'Angle')
+  colnames(HeadingTable) <- c('Angle', 'CalFrequency','RawFrequency')
+  HeadingTable[is.na(HeadingTable)] <- 0
+  
+  p <- plot_ly(
+    data = HeadingTable,
+    type = 'bar',
+    x = ~Angle,
+    y = ~CalFrequency,
+    hovertext = ~paste0("Angle: ", Angle, "&deg;", "<br>", "Freq:",CalFrequency),
+    hoverinfo = 'text',
+    opacity = 0.5,
+    marker = list(color = 'blue'),
+    name = 'Calibrated'
+  ) %>% add_bars(
+    y = ~RawFrequency,
+    hovertext = ~paste0("Angle: ", Angle, "&deg;", "<br>", "Freq:",RawFrequency),
+    hoverinfo = 'text',
+    marker = list(color = 'red'),
+    name = 'Uncalibrated'
+  ) %>% layout(
+    showlegend = T,
+    hovermode = 'x',
+    title = "Heading Angle Histogram",
+    titlefont = TITLEFONT,
+    font = MAINFONT,
+    xaxis = list(title = "Angle (clockwise degrees from magnetic north)"),
+    yaxis = list(title = "Frequency"),
+    margin = list(t = 70, r = 60, l = 60, b = 60)
+  ) %>% config(displayModeBar = 'hover')
+  
+  return(p)
+}
+
+
+
+compare_tilt_line <- function(TSAccelMag_Cal, TSAccelMag_Raw) {
+  
+  ## ABSURDLY HARD TO LOAD
+  # requires way too much computational power at this time
+  # p <- plot_ly(
+  #   data = arrange(TSAccelMag_Cal, datetime),
+  #   x = ~datetime,
+  #   y = ~tiltAngle,
+  #   type = 'scatter',
+  #   mode = 'lines',
+  #   line = list(color = 'blue'),
+  #   opacity = 0.5,
+  #   text = ~paste0(datetime, "<br>", "Tilt: ", tiltAngle, "&deg;"),
+  #   hoverinfo = 'text',
+  #   name = 'Calibrated'
+  # ) %>% add_lines(
+  #   data = arrange(TSAccelMag_Raw, datetime),
+  #   x = ~datetime,
+  #   y = ~tiltAngle,
+  #   type = 'scatter',
+  #   mode = 'lines',
+  #   line = list(color = 'red'),
+  #   opacity = 0.5,
+  #   text = ~paste0(datetime, "<br>", "Tilt: ", tiltAngle, "&deg;"),
+  #   hoverinfo = 'text',
+  #   name = 'Uncalibrated'
+  # ) %>% layout(
+  #   title = 'Tilt Angle',
+  #   titlefont = TITLEFONT,
+  #   font = MAINFONT,
+  #   xaxis = list(
+  #     range = as.numeric(range(TSAccelMag_Cal$datetime))*1000,
+  #     title = 'Date/time'
+  #   ),
+  #   yaxis = list(title = 'Tilt Angle (degrees from vertical)')
+  # ) %>% config(displayModeBar = 'hover')
+  
+}

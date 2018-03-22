@@ -12,7 +12,8 @@ shinyUI(dashboardPage(
     sidebarMenu(
       menuItem(text = 'Data Import',tabName = 'import'),
       menuItem(text = 'Windrose', tabName = 'windrose'),
-      menuItem(text = 'Time-Series Plots', tabName = 'timeseries')
+      menuItem(text = 'Time-Series Plots', tabName = 'timeseries'),
+      menuItem(text = 'Compare to Uncalibrated Data', tabName = 'compareData')
     )
   ),
   
@@ -65,6 +66,32 @@ shinyUI(dashboardPage(
             plotOutput('stickplot')
           )
         )
+      ),
+      
+      tabItem(tabName = 'compareData',
+        fluidRow(
+          box(width = 12, title = 'Compare Windrose',
+            column(width = 6,
+              h3('Calibrated'),
+              plotlyOutput('calibrated_windrose')
+            ),
+            column(width = 6,
+              h3('Uncalibrated'),
+              plotlyOutput('uncalibrated_windrose')
+            )
+          )
+        ),
+        
+        fluidRow(
+          box(width = 12,
+            plotlyOutput('compare_calibration_histogram')
+          )
+        )
+        # fluidRow(
+        #   box(width = 12,
+        #     plotlyOutput('compare_calibration_tilt')
+        #   )
+        # )
       )
     )
     

@@ -10,6 +10,8 @@ require(oce)
 source('LSM303-file-helpers.R')
 source('plot-helpers.R')
 
+CSV_NAME <- 'OddessyCalibratedWithDateTime.csv'
+
 shinyServer(function(input, output, session) {
   
   #### TSAccelMag_Cal ####
@@ -18,11 +20,11 @@ shinyServer(function(input, output, session) {
     # for reference, %>% is R's pipe operator
     # from the magrittr package (imported by dplyr)
     # for more information: http://magrittr.tidyverse.org/
-    TSAccelMag <- Read_LSM303_csv('B4_20141222-150317_AKnorth.csv') %>% 
+    TSAccelMag <- Read_LSM303_csv(CSV_NAME) %>% 
     # TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', crop = 3000) %>% 
-      Normalize_Accel() %>% 
+      Normalize_Accel(cal = TRUE) %>% 
       Get_Accel_Angles() %>% 
-      Normalize_Mag() %>% 
+      Normalize_Mag(cal = TRUE) %>% 
       Compensate_Mag_Field() %>% 
       Get_Heading() %>% 
       arrange(datetime)
@@ -30,6 +32,22 @@ shinyServer(function(input, output, session) {
     return(TSAccelMag)
   })
   
+  #### TSAccelMag_Raw ####
+  TSAccelMag_Raw <- reactive({
+    # Parallel to computation for TSAccelMag_Cal but starting with uncalibrated data
+    TSAccelMag <- Read_LSM303_csv(CSV_NAME) %>% 
+      # TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', crop = 3000) %>% 
+      Normalize_Accel(cal = FALSE) %>% 
+      Get_Accel_Angles() %>% 
+      Normalize_Mag(cal = FALSE) %>% 
+      Compensate_Mag_Field() %>% 
+      Get_Heading() %>% 
+      arrange(datetime)
+    
+    return(TSAccelMag)
+  })
+  
+  #### ____ WINDROSE ____ ####
   #### > rawdata ####
   output$rawdata <- DT::renderDataTable(TSAccelMag_Cal(), 
     options = list(
@@ -53,6 +71,8 @@ shinyServer(function(input, output, session) {
     histogram_heading_frequency(TSAccelMag_Cal())
   })
   
+  #### ____ TIME-SERIES ____ ####
+  
   #### > tilt_ts_plot ####
   output$tilt_ts_plot <- renderPlotly({
     line_ts_tiltangle(TSAccelMag_Cal())
@@ -63,10 +83,26 @@ shinyServer(function(input, output, session) {
     scatter_ts_heading(TSAccelMag_Cal())
   })
   
+  #### > stickplot ####
   output$stickplot <- renderPlot({
     firstdate <- TSAccelMag_Cal() %>% select(datetime) %>% head(1)[1] %>% floor_date('day')
     lastdate <- firstdate + weeks(1)
     
     heading_stickplot(TSAccelMag_Cal(), firstdate, lastdate)
+  })
+  
+  #### ____ CALIBRATION  ____ ####
+  #### > calibrated_windrose ####
+  output$calibrated_windrose <- renderPlotly({
+    windrose_heading_tilt(TSAccelMag_Cal())
+  })
+  
+  #### > uncalibrated_windrose ####
+  output$uncalibrated_windrose <- renderPlotly({
+    windrose_heading_tilt(TSAccelMag_Raw())
+  })
+  
+  output$compare_calibration_histogram <- renderPlotly({
+    compare_angle_histogram(TSAccelMag_Cal(), TSAccelMag_Raw())
   })
 })

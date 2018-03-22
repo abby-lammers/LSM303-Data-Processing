@@ -24,23 +24,12 @@ GetAzimuth <- function(Xvec, Yvec) {
   return(ReturnVec)
 }
 
-# 
-# TSAccelMag <- Read_LSM303_csv('AKsouth_012_20160403-0714.csv', sample = 0) %>% 
-# # TSAccelMag <- Read_LSM303_csv('B4_20141222-150317_AKnorth.csv', sample = 0) %>% 
-#   Normalize_Accel() %>% 
-#   Get_Accel_Angles() %>% 
-#   Normalize_Mag() %>% 
-#   Compensate_Mag_Field() %>% 
-#   Get_Heading()
 
 # read csv of data
 # COLUMN NAMES: c('datetime','xa','ya','za','xm','ym','zm')
 Read_LSM303_csv <- function(fileName, sample = 0, crop = 0) {
   TSAccelMag <- read.csv(fileName) #time series accelerometer and magnetometer data
   TSAccelMag$datetime <- lubridate::mdy_hm(TSAccelMag$datetime) # convert date string to date object
-  
-  TSAccelMag <- dplyr::select(TSAccelMag, datetime, xa, ya, za, xm, ym, zm) # select only necessary columns
-  
   
   # crop and sample methods for ease of *development*
   # work with fewer points to speed things up
@@ -63,19 +52,33 @@ Read_LSM303_csv <- function(fileName, sample = 0, crop = 0) {
 # Ax1, Ay1, and Az1 are the "normalized" readings.
 # Goal: "the root sum of Ax1, Ay1, and Az1 should be equal to one when the accelerometer is still"
 #     - LSM303 Vignette
-Normalize_Accel <- function(TSAccelMag) {
-  # get length (modulus) of acceleration vector
-  TSAccelMag$a_modulus <- sqrt(TSAccelMag$xa^2 + TSAccelMag$ya^2 + TSAccelMag$za^2)
+Normalize_Accel <- function(TSAccelMag, cal = TRUE) {
   
-  # normalize each component so that it becomes a unit vector (i.e. magnitude of 1)
-  # especially important for trig functions
-  TSAccelMag$xa_norm <- TSAccelMag$xa / TSAccelMag$a_modulus
-  TSAccelMag$ya_norm <- TSAccelMag$ya / TSAccelMag$a_modulus
-  TSAccelMag$za_norm <- TSAccelMag$za / TSAccelMag$a_modulus
+  if (cal) { # use calibrated data
+    
+    # get length (modulus) of acceleration vector
+    TSAccelMag$a_modulus <- sqrt(TSAccelMag$xa_cal^2 + TSAccelMag$ya_cal^2 + TSAccelMag$za_cal^2)
+    
+    # normalize each component so that it becomes a unit vector (i.e. magnitude of 1)
+    # especially important for trig functions
+    TSAccelMag$xa_norm <- TSAccelMag$xa_cal / TSAccelMag$a_modulus
+    TSAccelMag$ya_norm <- TSAccelMag$ya_cal / TSAccelMag$a_modulus
+    TSAccelMag$za_norm <- TSAccelMag$za_cal / TSAccelMag$a_modulus
+    
+  } else { # use uncalibrated data
+    
+    # get length (modulus) of acceleration vector
+    TSAccelMag$a_modulus <- sqrt(TSAccelMag$xa_raw^2 + TSAccelMag$ya_raw^2 + TSAccelMag$za_raw^2)
+    
+    # normalize each component so that it becomes a unit vector (i.e. magnitude of 1)
+    # especially important for trig functions
+    TSAccelMag$xa_norm <- TSAccelMag$xa_raw / TSAccelMag$a_modulus
+    TSAccelMag$ya_norm <- TSAccelMag$ya_raw / TSAccelMag$a_modulus
+    TSAccelMag$za_norm <- TSAccelMag$za_raw / TSAccelMag$a_modulus
+  }
   
   return(TSAccelMag)
 }
-
 
 
 # from LSM303 vignette Appendix A
@@ -121,14 +124,29 @@ Get_Accel_Angles <- function(TSAccelMag) {
 #   when there is no external interference magnetic field"
 #     - LSM303 Vignette
 
-Normalize_Mag <- function(TSAccelMag) {
-  # get length (modulus) of magnetometer vector for each observation
-  TSAccelMag$m_modulus <- sqrt(TSAccelMag$xm^2 + TSAccelMag$ym^2 + TSAccelMag$zm^2)
+Normalize_Mag <- function(TSAccelMag, cal = TRUE) {
   
-  # normalize Mx, My, Mz by dividing by modulus
-  TSAccelMag$xm_norm <- TSAccelMag$xm / TSAccelMag$m_modulus
-  TSAccelMag$ym_norm <- TSAccelMag$ym / TSAccelMag$m_modulus 
-  TSAccelMag$zm_norm <- TSAccelMag$zm / TSAccelMag$m_modulus
+  if(cal) { # use calibrated data
+    
+    # get length (modulus) of magnetometer vector for each observation
+    TSAccelMag$m_modulus <- sqrt(TSAccelMag$xm_cal^2 + TSAccelMag$ym_cal^2 + TSAccelMag$zm_cal^2)
+    
+    # normalize Mx, My, Mz by dividing by modulus
+    TSAccelMag$xm_norm <- TSAccelMag$xm_cal / TSAccelMag$m_modulus
+    TSAccelMag$ym_norm <- TSAccelMag$ym_cal / TSAccelMag$m_modulus 
+    TSAccelMag$zm_norm <- TSAccelMag$zm_cal / TSAccelMag$m_modulus
+    
+  } else { # use uncalibrated data
+    
+    # get length (modulus) of magnetometer vector for each observation
+    TSAccelMag$m_modulus <- sqrt(TSAccelMag$xm_raw^2 + TSAccelMag$ym_raw^2 + TSAccelMag$zm_raw^2)
+    
+    # normalize Mx, My, Mz by dividing by modulus
+    TSAccelMag$xm_norm <- TSAccelMag$xm_raw / TSAccelMag$m_modulus
+    TSAccelMag$ym_norm <- TSAccelMag$ym_raw / TSAccelMag$m_modulus 
+    TSAccelMag$zm_norm <- TSAccelMag$zm_raw / TSAccelMag$m_modulus
+  }
+  
   
   return(TSAccelMag)
 }
