@@ -28,22 +28,29 @@ GetAzimuth <- function(Xvec, Yvec) {
 #### STEP 0: READ CSV ####
 # read csv of data
 # COLUMN NAMES: c('datetime','xa','ya','za','xm','ym','zm')
-Read_LSM303_csv <- function(fileName, sample = 0, crop = 0) {
+Read_LSM303_csv <- function(fileName, sample = 0, crop = 0, index = FALSE) {
   TSAccelMag <- read.csv(fileName) #time series accelerometer and magnetometer data
   TSAccelMag$datetime <- lubridate::mdy_hm(TSAccelMag$datetime) # convert date string to date object
   
   # crop and sample methods for ease of *development*
   # work with fewer points to speed things up
   
-  if (crop > 0) {
-    # take first n rows of data
-    TSAccelMag <- head(TSAccelMag, crop) 
+  if (index[1] == FALSE) {
+    
+    if (crop > 0) {
+      # take first n rows of data
+      TSAccelMag <- head(TSAccelMag, crop) 
+    }
+    
+    if (sample > 0) {
+      # sample n random rows
+      TSAccelMag <- dplyr::sample_n(TSAccelMag, sample)
+    }
+    
+  } else {
+    TSAccelMag <- TSAccelMag[index, ]
   }
   
-  if (sample > 0) {
-    # sample n random rows
-    TSAccelMag <- dplyr::sample_n(TSAccelMag, sample)
-  }
   
   return(TSAccelMag)
 }

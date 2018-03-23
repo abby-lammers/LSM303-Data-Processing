@@ -12,7 +12,7 @@ source('LSM303-file-helpers.R')
 source('plot-helpers.R')
 
 SiteFileList <- list(
-  'Akumal South' = 'AKsouth_012_20160403-0714.csv',
+  'Akumal South' = 'AKsouth_012_20160403-0714_cleaned.csv',
   'Akumal North' = 'B4_20141222-150317_AKnorth.csv',
   'Casa Cenote' = 'casa_cenote_all_raw_accel_mag.csv',
   'Odyssey' = 'OddessyCalibratedWithDateTime.csv',
@@ -74,31 +74,31 @@ shinyServer(function(input, output, session) {
     return(ui)
   })
   
-  #### sample_crop ####
-  sample_crop <-  eventReactive(input$selectDatafileButton, {
+  #### sample_crop_index ####
+  # ensures that when rows are sampled, 
+  # the same rows are sampled from the calibrated and uncalibrated data. 
+  # TODO: just get the raw data.frame (read_lsm303_csv() in a separate reactive())
+  #   to avoid all of this mess
+  sample_crop_index <- eventReactive(input$selectDatafileButton, {
     rownum <- nrow(read.csv(input$datafile))
     
     # crop should be less than the number of rows of the data set,
     # otherwise it should be 0
     if(input$crop_num_bool && input$crop_num < rownum) {
-      crop <- input$crop_num
+      index <- 1:input$crop_num
     } else {
-      crop <- 0
+      index <- 1:rownum
     }
     
-    # if sample exists at all:
-    # if crop doesn't exist:
-    # if sample is greater than zero and less than the number of rows, sample = input
-    #if crop exists:
-    # if sample is greater than zero, less than the number of rows, and less than crop, sample = input
+    # if sample is selected AND greater than ZERO AND
+    # sample is less than the length of index,
+    # sample sample_num from index
     
-    if (input$sample_num_bool && input$sample_num > 0 && input$sample_num < rownum && (crop == 0 || input$sample_num < crop)) {
-      sample <- input$sample_num
-    } else {
-      sample <- 0
+    if (input$sample_num_bool && input$sample_num > 0 && input$sample_num < length(index)) {
+      index <- sort(sample(index, input$sample_num))
     }
     
-    return(list('sample' = sample, 'crop' = crop))
+    return(index)
   })
   
   #### ____ TSACCELMAG ____ ####
@@ -107,8 +107,7 @@ shinyServer(function(input, output, session) {
     # Parallel to computation for TSAccelMag_Cal but starting with uncalibrated data
     TSAccelMag <- Read_LSM303_csv(
       fileName = input$datafile, 
-      crop = sample_crop()[['crop']], 
-      sample = sample_crop()[['sample']]
+      index = sample_crop_index()
     ) %>% 
       Normalize_Accel(cal = FALSE) %>% 
       Get_Accel_Angles() %>% 
@@ -130,8 +129,7 @@ shinyServer(function(input, output, session) {
     # for more information: http://magrittr.tidyverse.org/
     TSAccelMag <- Read_LSM303_csv(
       fileName = input$datafile, 
-      crop = sample_crop()[['crop']], 
-      sample = sample_crop()[['sample']]
+      index = sample_crop_index()
     ) 
     
     # if calibrated columns are not present, return NULL
@@ -166,7 +164,7 @@ shinyServer(function(input, output, session) {
   
   #### > sidebarmenu ####
   output$sidebarmenu <- renderUI({
-    req(sample_crop())
+    req(sample_crop_index())
     
     if (!is.null(TSAccelMag_Cal())) {
       ui <- sidebarMenu(id = 'tabs',
