@@ -168,14 +168,14 @@ shinyServer(function(input, output, session) {
     
     if (!is.null(TSAccelMag_Cal())) {
       ui <- sidebarMenu(id = 'tabs',
-        menuItem(text = 'Data Import',tabName = 'import'),
+        menuItem(text = 'Data Export',tabName = 'export'),
         menuItem(text = 'Windrose', tabName = 'windrose'),
         menuItem(text = 'Time-Series Plots', tabName = 'timeseries'),
         menuItem(text = 'Compare to Uncalibrated Data', tabName = 'compareData')
       )
     } else {
       ui <- sidebarMenu(id = 'tabs',
-        menuItem(text = 'Data Import',tabName = 'import'),
+        menuItem(text = 'Data Export',tabName = 'export'),
         menuItem(text = 'Windrose', tabName = 'windrose'),
         menuItem(text = 'Time-Series Plots', tabName = 'timeseries')
       )

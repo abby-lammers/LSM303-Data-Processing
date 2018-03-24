@@ -20,7 +20,7 @@ shinyUI(dashboardPage(
     
     ### BEGIN REAL CONTENT ###
     tabItems(
-      tabItem(tabName = 'import',
+      tabItem(tabName = 'export',
         
         # button align bottom from r4ndomw4lk https://stackoverflow.com/questions/28960189/bottom-align-a-button-in-r-shiny
         fluidRow(

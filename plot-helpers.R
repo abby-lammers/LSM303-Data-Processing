@@ -1,6 +1,7 @@
 require(plotly)
 require(lubridate)
 require(dplyr)
+require(oce)
 
 TITLEFONT <- list(
   family = c('Open Sans','Arial'),
@@ -138,7 +139,7 @@ cartesian_heading_tilt <- function(TSAccelMag) {
   CartesianAngles$y_coord <- CartesianAngles$tiltAngle * sin(CartesianAngles$rotatedazimuthDegrees_adjusted * pi / 180)
   
   # make sure that axes are equal 
-  axisMax = max(max(CartesianAngles$x_coord), max(CartesianAngles$y_coord))
+  axisMax = max(max(abs(CartesianAngles$x_coord)), max(abs(CartesianAngles$y_coord)))
   
   p <- plot_ly(
     data = CartesianAngles,
