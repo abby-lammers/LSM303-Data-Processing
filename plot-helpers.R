@@ -229,15 +229,23 @@ heading_stickplot <- function(TSAccelMag, firstdate, lastdate) {
   CartesianAngles$x_coord <- CartesianAngles$tiltAngle * cos(CartesianAngles$rotatedazimuthDegrees_adjusted * pi / 180)
   CartesianAngles$y_coord <- CartesianAngles$tiltAngle * sin(CartesianAngles$rotatedazimuthDegrees_adjusted * pi / 180)
   
-  middley <- (range(CartesianAngles$tiltAngle)[1] + range(CartesianAngles$tiltAngle)[2])/2
+  #middley <- (range(CartesianAngles$tiltAngle)[1] + range(CartesianAngles$tiltAngle)[2])/2
+  max_y <- max(CartesianAngles$tiltAngle)
   
   par(col = 'grey')
-  oce.plot.ts(x = CartesianAngles$datetime, y = CartesianAngles$tiltAngle, type = 'l')
+  
+  # usr = xmin, xmax, ymin, ymax
+  oce.plot.ts(
+    x = CartesianAngles$datetime, 
+    y = CartesianAngles$tiltAngle, 
+    type = 'l', 
+    ylim = c(-0.03*max_y, 1.67*max_y)
+  )
   plotSticks(
     x = CartesianAngles$datetime, 
     u = CartesianAngles$x_coord, 
     v = CartesianAngles$y_coord, 
-    y = middley, 
+    y = max_y*1.33, 
     add = TRUE, 
     yscale = 3, col = 'black'
   )
