@@ -71,6 +71,10 @@ shinyUI(dashboardPage(
         ),
         fluidRow(
           box(width = 12,
+            selectInput('rotateHeadingPlotSelect', 
+              label = 'Orient heading relative to: ',
+              choices = c('North','West','South','East')
+            ),
             plotlyOutput('heading_ts_plot')
           )
         ),

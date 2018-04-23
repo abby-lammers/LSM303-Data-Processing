@@ -201,7 +201,7 @@ line_ts_tiltangle <- function(TSAccelMag, xrange = NULL) {
   return(p)
 }
 
-scatter_ts_heading <- function(TSAccelMag, xrange = NULL) {
+scatter_ts_heading <- function(TSAccelMag, xrange = NULL, rotateReference = 'North') {
   
   if (is.null(xrange)) {
     xaxis_list <- list(
@@ -215,10 +215,20 @@ scatter_ts_heading <- function(TSAccelMag, xrange = NULL) {
     )
   }
   
+  if (rotateReference == 'West') {
+    rotateDegrees <- 270
+  } else if (rotateReference == 'East') {
+    rotateDegrees <- 90
+  } else if (rotateReference == 'South') {
+    rotateDegrees <- 180
+  } else {
+    rotateDegrees <- 0
+  }
+  
   p <- plot_ly(
     data = TSAccelMag,
     x = ~datetime,
-    y = ~azimuthDegrees_adjusted,
+    y = ~(azimuthDegrees_adjusted + rotateDegrees) %% 360,
     color = ~tiltAngle,
     type = 'scatter',
     mode = 'markers',
@@ -231,7 +241,7 @@ scatter_ts_heading <- function(TSAccelMag, xrange = NULL) {
     titlefont = TITLEFONT,
     font = MAINFONT,
     xaxis = xaxis_list,
-    yaxis = list(title = 'Heading Angle (degrees from North)')
+    yaxis = list(title = paste0('Heading Angle (degrees from ', rotateReference, ')'))
   ) %>% config(displayModeBar = 'hover')
   
   return(p)

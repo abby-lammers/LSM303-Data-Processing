@@ -283,7 +283,7 @@ shinyServer(function(input, output, session) {
   
   #### > heading_ts_plot ####
   output$heading_ts_plot <- renderPlotly({
-    scatter_ts_heading(TSAccelMag_Main(), xrange = vals$timeSeries_xRange)
+    scatter_ts_heading(TSAccelMag_Main(), xrange = vals$timeSeries_xRange, rotateReference = input$rotateHeadingPlotSelect)
   })
   
   #### > stickplot ####
