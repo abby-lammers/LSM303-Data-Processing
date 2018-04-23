@@ -167,7 +167,20 @@ cartesian_heading_tilt <- function(TSAccelMag) {
 }
 
 #### STEP 7: TIME-SERIES VECTOR PLOTS ####
-line_ts_tiltangle <- function(TSAccelMag) {
+line_ts_tiltangle <- function(TSAccelMag, xrange = NULL) {
+  
+  if (is.null(xrange)) {
+    xaxis_list <- list(
+      range = as.numeric(range(TSAccelMag$datetime))*1000,
+      title = 'Date/time'
+    )
+  } else {
+    xaxis_list <- list(
+      range = xrange,
+      title = 'Date/time'
+    )
+  }
+
   p <- plot_ly(
     data = arrange(TSAccelMag, datetime),
     x = ~datetime,
@@ -175,22 +188,33 @@ line_ts_tiltangle <- function(TSAccelMag) {
     type = 'scatter',
     mode = 'lines',
     text = ~paste0(datetime, "<br>", "Tilt: ", tiltAngle, "&deg;"),
-    hoverinfo = 'text'
+    hoverinfo = 'text',
+    key = ~datetime
   ) %>% layout(
     title = 'Tilt Angle',
     titlefont = TITLEFONT,
     font = MAINFONT,
-    xaxis = list(
-      range = as.numeric(range(TSAccelMag$datetime))*1000,
-      title = 'Date/time'
-    ),
+    xaxis = xaxis_list,
     yaxis = list(title = 'Tilt Angle (degrees from vertical)')
   ) %>% config(displayModeBar = 'hover')
   
   return(p)
 }
 
-scatter_ts_heading <- function(TSAccelMag) {
+scatter_ts_heading <- function(TSAccelMag, xrange = NULL) {
+  
+  if (is.null(xrange)) {
+    xaxis_list <- list(
+      range = as.numeric(range(TSAccelMag$datetime))*1000,
+      title = 'Date/time'
+    )
+  } else {
+    xaxis_list <- list(
+      range = xrange,
+      title = 'Date/time'
+    )
+  }
+  
   p <- plot_ly(
     data = TSAccelMag,
     x = ~datetime,
@@ -200,15 +224,13 @@ scatter_ts_heading <- function(TSAccelMag) {
     mode = 'markers',
     marker = list(size = 4),
     text = ~paste0(datetime, "<br>", "Heading: ", azimuthDegrees_adjusted, "&deg;", '<br>', "Tilt: ", tiltAngle, "&deg;"),
-    hoverinfo = 'text'
+    hoverinfo = 'text',
+    key = ~datetime
   ) %>% layout(
     title = 'Heading Angle',
     titlefont = TITLEFONT,
     font = MAINFONT,
-    xaxis = list(
-      range = as.numeric(range(TSAccelMag$datetime))*1000,
-      title = 'Date/time'
-    ),
+    xaxis = xaxis_list,
     yaxis = list(title = 'Heading Angle (degrees from North)')
   ) %>% config(displayModeBar = 'hover')
   

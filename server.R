@@ -23,6 +23,11 @@ SiteFileList <- list(
 
 shinyServer(function(input, output, session) {
   
+  #### $$$ vals ####
+  vals <- reactiveValues(
+    timeSeries_xRange = NULL
+  )
+  
   #### > welcomePanel ####
   output$welcomePanel <- renderUI({
     if (length(paste(input$tabs)) == 0) {
@@ -260,14 +265,25 @@ shinyServer(function(input, output, session) {
   
   #### ____ TIME-SERIES ____ ####
   
+  #### :: plotly_relayout ####
+  ## event_data(plotly_relayout)
+  # $xaxis.range[0] = min
+  # $xaxis.range[1] = max
+  # $yaxis.range[0]... you get the picture
+  observeEvent(eventExpr = event_data("plotly_relayout"), ignoreInit = TRUE, {
+    if (!is.null(event_data("plotly_relayout"))) {
+      vals$timeSeries_xRange <- c(event_data("plotly_relayout")$`xaxis.range[0]`, event_data("plotly_relayout")$`xaxis.range[1]`)
+    }
+  })
+  
   #### > tilt_ts_plot ####
   output$tilt_ts_plot <- renderPlotly({
-    line_ts_tiltangle(TSAccelMag_Main())
+    line_ts_tiltangle(TSAccelMag_Main(), xrange = vals$timeSeries_xRange)
   })
   
   #### > heading_ts_plot ####
   output$heading_ts_plot <- renderPlotly({
-    scatter_ts_heading(TSAccelMag_Main())
+    scatter_ts_heading(TSAccelMag_Main(), xrange = vals$timeSeries_xRange)
   })
   
   #### > stickplot ####
