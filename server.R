@@ -5,41 +5,81 @@ shinyServer(function(input, output, session) {
     timeSeries_xRange = NULL
   )
   
-  #### sample_crop_index ####
-  # ensures that when rows are sampled, 
-  # the same rows are sampled from the calibrated and uncalibrated data. 
-  # TODO: just get the raw data.frame (read_lsm303_csv() in a separate reactive())
-  #   to avoid all of this mess
-  sample_crop_index <- eventReactive(input$selectDatafileButton, {
-    rownum <- nrow(read.csv(input$datafile))
+  #### > fileUploadSelector ####
+  output$fileUploadSelector <- renderUI({
+    validate(need(input$ExistingOrCSV, "Loading..."))
     
-    # crop should be less than the number of rows of the data set,
-    # otherwise it should be 0
-    if(input$crop_num_bool && input$crop_num < rownum) {
-      index <- 1:input$crop_num
+    if(input$ExistingOrCSV == 'csv') {
+      ui <- fileInput('csv_datafile', 
+        label = '', 
+        accept = c("text/csv", "text/comma-separated-values,text/plain",".csv"),
+        buttonLabel = "Browse...", 
+        placeholder = "No file selected", 
+        width = '100%'
+      )
     } else {
-      index <- 1:rownum
+      ui <- selectInput('existing_datafile', label = 'Choose a site:', choices = SiteFileList, width = '100%')
     }
     
-    # if sample is selected AND greater than ZERO AND
-    # sample is less than the length of index,
-    # sample sample_num from index
+    return(ui)
+  })
+  
+  #### < csvUploadInfoModalButton ####
+  observeEvent(input$csvUploadInfoModalButton, {
+    showModal(modalDialog(
+      title = "CSV Upload Requirements",
+      h2("Required Columns"),
+      imageOutput('csvColumnInfoTable'), # see below
+      size = 'm',
+      easyClose = TRUE
+    ))
+  })
+  # don't ask me why you have to wrap the image in a separate renderimage statement,
+  #   I can't figure it out either.
+  # I think it may have to do with relative vs absolute file addresses (?)
+  output$csvColumnInfoTable <- renderImage({
+    list(src = 'www/CSV column description table.png',
+      contentType = 'image/png',
+      width = '100%'
+    )
+  }, deleteFile = FALSE)
+  
+  #### MasterRawCSV ####
+  MasterRawCSV <- eventReactive(input$selectDatafileButton, {
     
-    if (input$sample_num_bool && input$sample_num > 0 && input$sample_num < length(index)) {
-      index <- sort(sample(index, input$sample_num))
+    ## read the csv (depends on file source)
+    if (input$ExistingOrCSV == 'existing') {
+      TSAccelMag <- read.csv(input$existing_datafile)
+    } else {
+      TSAccelMag <- read.csv(input$csv_datafile$datapath) # $datapath gets to actual file
     }
     
-    return(index)
+    ## parse datetime
+    TSAccelMag$datetime <- lubridate::mdy_hm(TSAccelMag$datetime) # convert date string to date object
+    
+    ## crop and sample for ease of development
+    ## speeds up plotting
+    rownum <- nrow(TSAccelMag)
+    
+    ## 1. optional crop
+    if (input$crop_num_bool && input$crop_num < rownum && input$crop_num > 0) {
+      TSAccelMag <- head(TSAccelMag, input$crop_num)
+      rownum <- input$crop_num
+    }
+    
+    ## 2. optional sample
+    if (input$sample_num_bool && input$sample_num < rownum && input$sample_num > 0) {
+      TSAccelMag <- TSAccelMag[sort(sample(1:rownum, input$sample_num)), ]
+    }
+    
+    return(TSAccelMag)
   })
   
   #### ____ TSACCELMAG ____ ####
   #### TSAccelMag_Raw ####
   TSAccelMag_Raw <- eventReactive(input$selectDatafileButton, {
     # Parallel to computation for TSAccelMag_Cal but starting with uncalibrated data
-    TSAccelMag <- Read_LSM303_csv(
-      fileName = input$datafile, 
-      index = sample_crop_index()
-    ) %>% 
+    TSAccelMag <- MasterRawCSV() %>% 
       Normalize_Accel(cal = FALSE) %>% 
       Get_Accel_Angles() %>% 
       Normalize_Mag(cal = FALSE) %>% 
@@ -58,10 +98,7 @@ shinyServer(function(input, output, session) {
     # for reference, %>% is R's pipe operator
     # from the magrittr package (imported by dplyr)
     # for more information: http://magrittr.tidyverse.org/
-    TSAccelMag <- Read_LSM303_csv(
-      fileName = input$datafile, 
-      index = sample_crop_index()
-    ) 
+    TSAccelMag <- MasterRawCSV()
     
     # if calibrated columns are not present, return NULL
     if (sum(colnames(TSAccelMag) == 'xa_cal') < 1) {
@@ -95,7 +132,7 @@ shinyServer(function(input, output, session) {
   
   #### > sidebarmenu ####
   output$sidebarmenu <- renderUI({
-    req(sample_crop_index())
+    req(MasterRawCSV())
     
     if (!is.null(TSAccelMag_Cal())) {
       ui <- sidebarMenu(

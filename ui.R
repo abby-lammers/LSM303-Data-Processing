@@ -20,16 +20,23 @@ shinyUI(dashboardPage(
       tabItem(tabName = 'import',
         h1('Welcome', align= 'center'),
         h4('Select a site below and click "Open File" to get started.', align = 'center'),
+        br(),
+        
         fluidRow(
-          column(width = 4,
-            selectInput('datafile', label = 'Choose a site:', choices = SiteFileList, width = '100%')
+          column(width = 4, 
+            selectInput('ExistingOrCSV', label = "Select Data Source:",
+              choices = list("Upload CSV" = "csv","Select Existing Site" = "existing"), width = "100%")
           ),
-          column(width = 8, style = "margin-top: 25px;",
-            actionButton('selectDatafileButton', label = 'Open File')
+          column(width = 4,
+            uiOutput('fileUploadSelector', width = '100%')
+          ),
+          column(width = 2, style = "margin-top: 25px;",
+            actionButton('selectDatafileButton', label = 'Open File', class = 'blueButton', width = '100%')
+          ),
+          column(width = 2, style = "margin-top: 25px;",
+            actionButton('csvUploadInfoModalButton', label = 'CSV Requirements', class = 'blueButton', width = '100%')
           )
         ),
-        
-        br(),
         h4('Crop/Sample Data to reduce load time (optional)'),
         p('Recommended to crop or sample to 2000 observations or less (until faster plotting algorithms implemented)'),
         p('Note: if both "crop" and "sample" are selected, data will first be cropped, then sampled.'),

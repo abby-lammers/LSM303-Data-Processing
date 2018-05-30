@@ -26,7 +26,7 @@
 //SdFat SD;
 
 // Wait for serial monitor to run code (prevents excess header info from being written)
-#define WAIT_TO_START 1;
+// #define WAIT_TO_START 1;
 
 SdFat sd; /*Create the objects to talk to the SD card*/
 SdFile file;
@@ -147,7 +147,7 @@ int LSM303_TEMP_Raw = 0;
 
 
 
-// What sensors are connected?
+// What sensors are connected?p
 //----------------------------
 //#define TS_DS18B20 INSTALLED
 #define LSM303_ADDRESS_ACCEL (0x32 >> 1)  // 0011001x The Arduino takes care of the last R/W bit for us depending on what function we’re using 
@@ -425,7 +425,7 @@ void setup () {
   // SPI (Serial Peripheral Interface): http://www.gammon.com.au/spi
   // SD card latencies vary randomly between 41ms to 300ms and block Arduino in the meantime: http://forum.arduino.cc/index.php?topic=256084.0
   if (!sd.begin(chipSelect, SPI_FULL_SPEED)) {
-    Serial.println(F("Cound NOT initialize SD Card")); Serial.flush();
+    Serial.println(F("Could NOT initialize SD Card")); Serial.flush();
     error();
   }
 

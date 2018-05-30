@@ -6,7 +6,7 @@
 .overflowX {
   overflow-x: scroll;
 }
-
+R
 .overflowY {
   overflow-y: scroll;
 }
@@ -17,4 +17,13 @@
   border-color:#002C53;
   border-width:1px;
   border-radius:0;
+}
+
+.blueButton {
+  background-color: #367fa9;
+  color:#fff;
+}
+
+.blueButton:hover{
+  background-color: #3c8dbc;
 }
