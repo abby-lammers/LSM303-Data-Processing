@@ -1,15 +1,12 @@
-require(shiny)
-require(shinydashboard)
-require(plotly)
-require(DT)
-require(shinyjs)
-
 shinyUI(dashboardPage(
   
   dashboardHeader(title = 'LSM303 Data Processing and Visualization', titleWidth = '100%'),
   
   dashboardSidebar(
-    uiOutput('sidebarmenu')
+    sidebarMenu(id = 'tabs',
+      menuItem(text = 'Data Import', tabName = 'import'),
+      uiOutput('sidebarmenu')
+    )
   ),
   
   dashboardBody(
@@ -20,6 +17,44 @@ shinyUI(dashboardPage(
     
     ### BEGIN REAL CONTENT ###
     tabItems(
+      tabItem(tabName = 'import',
+        h1('Welcome', align= 'center'),
+        h4('Select a site below and click "Open File" to get started.', align = 'center'),
+        fluidRow(
+          column(width = 4,
+            selectInput('datafile', label = 'Choose a site:', choices = SiteFileList, width = '100%')
+          ),
+          column(width = 8, style = "margin-top: 25px;",
+            actionButton('selectDatafileButton', label = 'Open File')
+          )
+        ),
+        
+        br(),
+        h4('Crop/Sample Data to reduce load time (optional)'),
+        p('Recommended to crop or sample to 2000 observations or less (until faster plotting algorithms implemented)'),
+        p('Note: if both "crop" and "sample" are selected, data will first be cropped, then sampled.'),
+        p('Date range selection coming soon.'),
+        
+        fluidRow(
+          column(width = 3,
+            numericInput('crop_num', label = 'Crop data to first n observations', value = 0, width = '100%')
+          ),
+          column(width = 2,
+            awesomeCheckbox('crop_num_bool', label = "", value = FALSE)
+          )
+        ),
+        
+        fluidRow(
+          column(width = 3,
+            numericInput('sample_num', label = 'Randomly sample n observations', value = 0, width = '100%')
+            
+          ),
+          column(width = 2,
+            awesomeCheckbox('sample_num_bool', label = "", value = FALSE)
+          )
+        )
+      ),
+      
       tabItem(tabName = 'export',
         
         # button align bottom from r4ndomw4lk https://stackoverflow.com/questions/28960189/bottom-align-a-button-in-r-shiny
@@ -121,7 +156,5 @@ shinyUI(dashboardPage(
         )
       )
     )
-    
-    
   )
 ))

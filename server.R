@@ -1,83 +1,9 @@
-require(shiny)
-require(plotly)
-require(lubridate)
-require(dplyr) # imports magrittr (pipe operators "%>%")
-require(DT)
-require(shinyjs)
-require(oce)
-require(shinyWidgets)
-
-# include function files
-source('LSM303-file-helpers.R')
-source('plot-helpers.R')
-
-SiteFileList <- list(
-  'Akumal South' = 'AKsouth_012_20160403-0714_cleaned.csv',
-  'Akumal North' = 'B4_20141222-150317_AKnorth.csv',
-  'Casa Cenote' = 'casa_cenote_all_raw_accel_mag.csv',
-  'Odyssey' = 'OddessyCalibratedWithDateTime.csv',
-  'Calibration 1 (XY circle)' = 'calibration 1 clockwise circle true N.csv',
-  'Calibration 2 (Rotation around Z axis)' = 'calibration 2 ccw mag rotation no tilt.csv',
-  'Calibration 3 (N/S/E/W Tilt)' = 'calibration 3 plus drill.csv'
-)
-
 shinyServer(function(input, output, session) {
   
   #### $$$ vals ####
   vals <- reactiveValues(
     timeSeries_xRange = NULL
   )
-  
-  #### > welcomePanel ####
-  output$welcomePanel <- renderUI({
-    if (length(paste(input$tabs)) == 0) {
-      ui <- list(
-        h1('Welcome', align= 'center'),
-        h4('Select a site below and click "Open File" to get started.', align = 'center'),
-        p('Note: you may have to click twice before sidebar menu appears... it\'s a work in progress)'),
-        
-        fluidRow(
-          column(width = 4,
-            selectInput('datafile', label = 'Choose a site:', choices = SiteFileList, width = '100%')
-          ),
-          column(width = 8, style = "margin-top: 25px;",
-            actionButton('selectDatafileButton', label = 'Open File')
-          )
-        ),
-        
-        br(),
-        h4('Crop/Sample Data to reduce load time (optional)'),
-        p('Recommended to crop or sample to 2000 observations or less (until faster plotting algorithms implemented)'),
-        p('Note: if both "crop" and "sample" are selected, data will first be cropped, then sampled.'),
-        p('Date range selection coming soon.'),
-        
-        fluidRow(
-          column(width = 3,
-            numericInput('crop_num', label = 'Crop data to first n observations', value = 0, width = '100%')
-          ),
-          column(width = 2,
-            awesomeCheckbox('crop_num_bool', label = "", value = FALSE)
-          )
-        ),
-        
-        fluidRow(
-          column(width = 3,
-            numericInput('sample_num', label = 'Randomly sample n observations', value = 0, width = '100%')
-            
-          ),
-          column(width = 2,
-            awesomeCheckbox('sample_num_bool', label = "", value = FALSE)
-            
-          )
-        )
-        
-      )
-    } else {
-      ui <- list()
-    }
-    
-    return(ui)
-  })
   
   #### sample_crop_index ####
   # ensures that when rows are sampled, 
@@ -172,14 +98,14 @@ shinyServer(function(input, output, session) {
     req(sample_crop_index())
     
     if (!is.null(TSAccelMag_Cal())) {
-      ui <- sidebarMenu(id = 'tabs',
+      ui <- sidebarMenu(
         menuItem(text = 'Data Export',tabName = 'export'),
         menuItem(text = 'Windrose', tabName = 'windrose'),
         menuItem(text = 'Time-Series Plots', tabName = 'timeseries'),
         menuItem(text = 'Compare to Uncalibrated Data', tabName = 'compareData')
       )
     } else {
-      ui <- sidebarMenu(id = 'tabs',
+      ui <- sidebarMenu(
         menuItem(text = 'Data Export',tabName = 'export'),
         menuItem(text = 'Windrose', tabName = 'windrose'),
         menuItem(text = 'Time-Series Plots', tabName = 'timeseries')
@@ -274,6 +200,12 @@ shinyServer(function(input, output, session) {
     if (!is.null(event_data("plotly_relayout"))) {
       vals$timeSeries_xRange <- c(event_data("plotly_relayout")$`xaxis.range[0]`, event_data("plotly_relayout")$`xaxis.range[1]`)
     }
+  })
+  
+  #### :: reset range ####
+  # reset range on time series plots when new data set is uploaded
+  observeEvent(TSAccelMag_Raw(), {
+    vals$timeSeries_xRange <- NULL
   })
   
   #### > tilt_ts_plot ####
