@@ -92,13 +92,12 @@ histogram_heading_frequency <- function(TSAccelMag) {
 #### STEP 6: WINDROSE (TILT AND/OR VELOCITY) ####
 
 windrose_heading_tilt <- function(TSAccelMag) {
-  p <- plot_ly(
+  p <-  plot_ly(
     data = TSAccelMag,
     type = 'area',
     t = ~azimuthDegrees_adjusted,
     r = ~tiltAngle,
-    opacity = 0.3,
-    marker = list(size = 4)
+    marker = list(color = 'black')
   ) %>% layout(
     title = "Heading (angular axis) vs Tilt (radial axis)",
     font = TITLEFONT, 
@@ -116,7 +115,7 @@ windrose_heading_tilt <- function(TSAccelMag) {
     ),
     orientation = 270,
     showlegend = F
-  ) %>% config(
+  ) %>% config( 
     displayModeBar = 'hover'
   )
   
