@@ -259,9 +259,11 @@ heading_stickplot <- function(TSAccelMag, firstdate, lastdate) {
   # t = rotatedazimuthDegrees_adjusted, r = tiltAngle
   CartesianAngles$x_coord <- CartesianAngles$tiltAngle * cos(CartesianAngles$rotatedazimuthDegrees_adjusted * pi / 180)
   CartesianAngles$y_coord <- CartesianAngles$tiltAngle * sin(CartesianAngles$rotatedazimuthDegrees_adjusted * pi / 180)
-  
   #middley <- (range(CartesianAngles$tiltAngle)[1] + range(CartesianAngles$tiltAngle)[2])/2
   max_y <- max(CartesianAngles$tiltAngle)
+  # zero point
+  zero_y <- max_y*1.33
+  y_scale = 2
   
   par(col = 'grey')
   
@@ -270,16 +272,33 @@ heading_stickplot <- function(TSAccelMag, firstdate, lastdate) {
     x = CartesianAngles$datetime, 
     y = CartesianAngles$tiltAngle, 
     type = 'l', 
-    ylim = c(-0.03*max_y, 1.67*max_y)
+    ylim = c(-0.03*max_y, 1.67*max_y),
+    xlab = 'Date',
+    ylab = 'Tilt Angle Magnitude (Gray Time Series)',
+    mar = c(3.5,3.5,3.5,3.5)
   )
   plotSticks(
     x = CartesianAngles$datetime, 
     u = CartesianAngles$x_coord, 
     v = CartesianAngles$y_coord, 
-    y = max_y*1.33, 
+    y = zero_y, 
     add = TRUE, 
-    yscale = 3, col = 'black'
+    yscale = y_scale, col = 'black'
   )
+  ### get axis parameters from left axis, make an 1/3-scaled y axis but shifted to reflect centerline
+  # parameters from left axis:
+  yAxisRange <- (par('yaxp')[1:2] - zero_y) * y_scale
+  nticks <- par('yaxp')[3]
+  tickInterval <- (par('yaxp')[2] / (nticks))
+  
+  # label_vec gives labels corresponding to at_vec
+  label_vec <- seq(floor(yAxisRange[1]/tickInterval) * tickInterval, floor(yAxisRange[2]/tickInterval) * tickInterval, tickInterval*y_scale)
+  # at_vec gives positions of labels
+  at_vec <- label_vec / y_scale + zero_y
+  
+  axis(side = 4, col = 'white', line = -1.5, labels = FALSE)
+  axis(side=4, col="black", col.axis="black", at = at_vec, labels = abs(label_vec), line = -1.5)     # additional y-axis
+  mtext("Tilt Angle Magnitude (Black Vector Plot)", side = 4, line = 0.5, col = 'black')
 }
 
 
